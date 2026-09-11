@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "LiveSellAI POC",
+    "slug": "livesellai-poc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Usado para gravar o vídeo que será enviado para o Azure Blob Storage.",
+        "NSMicrophoneUsageDescription": "Usado para gravar o áudio do vídeo.",
+        "NSPhotoLibraryUsageDescription": "Usado para selecionar um vídeo já existente no dispositivo."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Usado para selecionar um vídeo já existente no dispositivo.",
+          "cameraPermission": "Usado para gravar o vídeo que será enviado para o Azure Blob Storage.",
+          "microphonePermission": "Usado para gravar o áudio do vídeo."
+        }
+      ]
+    ]
+  }
+}
