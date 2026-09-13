@@ -54,6 +54,24 @@ if [ ! -d musetalk ]; then
 fi
 cd ~/musetalk
 
+# Bug do próprio MuseTalk: a flag --use_float16 é lida em scripts/inference.py
+# mas load_all_model() nunca repassa esse parâmetro pro UNet(...), então a
+# flag nunca tem efeito nenhum (o modelo sempre carrega em fp32, dobrando o
+# uso de VRAM). Patch direto no arquivo pra sempre carregar em float16 --
+# reduz bastante o uso de memória, importante em GPUs com pouca VRAM.
+python -c "
+path = 'musetalk/utils/utils.py'
+content = open(path).read()
+marker = 'model_path=unet_model_path,\n        device=device'
+if 'use_float16=True' not in content:
+    new_content = content.replace(marker, 'model_path=unet_model_path,\n        use_float16=True,\n        device=device')
+    assert new_content != content, 'Patch do use_float16 falhou -- texto esperado não encontrado em utils.py'
+    open(path, 'w').write(new_content)
+    print('Patch use_float16 aplicado em musetalk/utils/utils.py')
+else:
+    print('Patch use_float16 já estava aplicado')
+"
+
 echo ""
 echo "=== Baixando os pesos do MuseTalk (pode demorar, são vários GB) ==="
 # Isso roda ANTES de instalar F5-TTS/torch/transformers de propósito: o
