@@ -120,8 +120,8 @@ pip install -U "huggingface_hub[cli]" gdown
 # final, mesmo com arquivos faltando). Baixamos direto do HuggingFace
 # oficial, um a um, e cada comando é seguro de rodar de novo (só baixa o
 # que ainda falta).
-hf download TMElyralab/MuseTalk --local-dir . --include "musetalk/musetalk.json" "musetalk/pytorch_model.bin"
-hf download TMElyralab/MuseTalk --local-dir . --include "musetalkV15/musetalk.json" "musetalkV15/unet.pth"
+hf download TMElyralab/MuseTalk --local-dir models --include "musetalk/musetalk.json" "musetalk/pytorch_model.bin"
+hf download TMElyralab/MuseTalk --local-dir models --include "musetalkV15/musetalk.json" "musetalkV15/unet.pth"
 hf download stabilityai/sd-vae-ft-mse --local-dir models/sd-vae --include "config.json" "diffusion_pytorch_model.bin"
 hf download openai/whisper-tiny --local-dir models/whisper --include "config.json" "pytorch_model.bin" "preprocessor_config.json"
 hf download yzd-v/DWPose --local-dir models/dwpose --include "dw-ll_ucoco_384.pth"
