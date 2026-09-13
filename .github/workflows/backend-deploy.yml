@@ -1,0 +1,44 @@
+name: Deploy backend to Azure Functions
+
+# Builda e implanta o backend (poc-v1/backend) na Function App já criada
+# no Azure (livesellai-poc-backend), a cada push que mude esse diretório.
+# Autenticação via publish profile (secret AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+# no repositório -- gerado com
+# `az functionapp deployment list-publishing-profiles`).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "poc-v1/backend/**"
+      - ".github/workflows/backend-deploy.yml"
+  workflow_dispatch: {}
+
+env:
+  AZURE_FUNCTIONAPP_NAME: livesellai-poc-backend
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: poc-v1/backend
+  NODE_VERSION: "24"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Instalar dependências (só produção)
+        run: |
+          cd '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          npm ci --omit=dev
+
+      - name: Deploy na Function App
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
