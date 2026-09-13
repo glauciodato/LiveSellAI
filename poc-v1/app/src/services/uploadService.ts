@@ -23,7 +23,7 @@ export interface RequestUploadUrlResult {
 }
 
 /** Deixa o e-mail seguro para compor o caminho do blob (isolamento por tenant). */
-function sanitizeTenantSegment(email: string): string {
+export function sanitizeTenantSegment(email: string): string {
   return email
     .trim()
     .toLowerCase()
@@ -117,4 +117,33 @@ export async function uploadVideoToBlob({
       `Falha no upload para o Azure Blob Storage (HTTP ${result?.status}). ${result?.body ?? ''}`
     );
   }
+}
+
+export interface LatestAvatarResult {
+  found: boolean;
+  /** URL com SAS de leitura, presente só quando found === true. */
+  url?: string;
+  blobName?: string;
+  lastModified?: string;
+}
+
+/**
+ * Pergunta ao backend se já existe um avatar gerado para este tenant e,
+ * se existir, devolve uma URL (com SAS de leitura, temporária) pra exibir.
+ * A geração do avatar em si ainda é disparada manualmente (fora do app)
+ * nesta fase da POC — aqui só verificamos se o resultado já está pronto.
+ */
+export async function getLatestAvatar(tenantEmail: string): Promise<LatestAvatarResult> {
+  const response = await fetch(
+    `${BACKEND_URL}/latest-avatar?tenantId=${encodeURIComponent(sanitizeTenantSegment(tenantEmail))}`
+  );
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(
+      `Falha ao consultar o avatar mais recente (HTTP ${response.status}). ${body}`
+    );
+  }
+
+  return (await response.json()) as LatestAvatarResult;
 }

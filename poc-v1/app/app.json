@@ -34,7 +34,8 @@
           "cameraPermission": "Usado para gravar o vídeo que será enviado para o Azure Blob Storage.",
           "microphonePermission": "Usado para gravar o áudio do vídeo."
         }
-      ]
+      ],
+      "expo-video"
     ]
   }
 }

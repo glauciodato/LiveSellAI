@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { requestUploadUrl, uploadVideoToBlob } from '../services/uploadService';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import {
+  getLatestAvatar,
+  requestUploadUrl,
+  uploadVideoToBlob,
+} from '../services/uploadService';
 
 interface UploadScreenProps {
   tenantEmail: string;
@@ -24,6 +30,7 @@ interface SelectedVideo {
 }
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+type AvatarStatus = 'loading' | 'found' | 'not-found' | 'error';
 
 function guessFileName(uri: string, fallbackExtension = 'mp4'): string {
   const uriParts = uri.split('/');
@@ -36,12 +43,44 @@ function guessFileName(uri: string, fallbackExtension = 'mp4'): string {
 
 /**
  * Tela principal da POC: permite selecionar um vídeo já existente no
- * dispositivo ou gravar um novo, e enviá-lo para o Azure Blob Storage.
+ * dispositivo ou gravar um novo, enviá-lo para o Azure Blob Storage, e
+ * ver o avatar já gerado pra esse tenant (se algum já tiver sido gerado
+ * — hoje a geração em si ainda é disparada manualmente, fora do app).
  */
 export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProps) {
   const [video, setVideo] = useState<SelectedVideo | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
+
+  const [avatarStatus, setAvatarStatus] = useState<AvatarStatus>('loading');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+
+  const avatarPlayer = useVideoPlayer(avatarUrl);
+
+  async function loadAvatar() {
+    setAvatarStatus('loading');
+    setAvatarError(null);
+    try {
+      const result = await getLatestAvatar(tenantEmail);
+      if (result.found && result.url) {
+        setAvatarUrl(result.url);
+        setAvatarStatus('found');
+      } else {
+        setAvatarUrl(null);
+        setAvatarStatus('not-found');
+      }
+    } catch (err) {
+      setAvatarUrl(null);
+      setAvatarStatus('error');
+      setAvatarError(err instanceof Error ? err.message : 'Erro ao buscar o avatar.');
+    }
+  }
+
+  useEffect(() => {
+    loadAvatar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantEmail]);
 
   function handlePickerResult(result: ImagePicker.ImagePickerResult) {
     if (result.canceled || result.assets.length === 0) {
@@ -132,7 +171,11 @@ export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProp
   const uploading = status === 'uploading';
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.header}>
         <Text style={styles.tenant}>{tenantEmail}</Text>
         <TouchableOpacity onPress={onLogout}>
@@ -180,10 +223,36 @@ export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProp
       {status === 'success' && message ? (
         <Text style={styles.success}>Upload concluído! Blob: {message}</Text>
       ) : null}
-      {status === 'error' && message ? (
-        <Text style={styles.error}>{message}</Text>
-      ) : null}
-    </View>
+      {status === 'error' && message ? <Text style={styles.error}>{message}</Text> : null}
+
+      <View style={styles.divider} />
+
+      <View style={styles.avatarHeader}>
+        <Text style={styles.title}>Meu avatar</Text>
+        <TouchableOpacity onPress={loadAvatar} disabled={avatarStatus === 'loading'}>
+          <Text style={styles.refreshLink}>Atualizar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {avatarStatus === 'loading' ? (
+        <ActivityIndicator style={styles.avatarState} />
+      ) : avatarStatus === 'found' && avatarUrl ? (
+        <VideoView
+          key={avatarUrl}
+          player={avatarPlayer}
+          style={styles.avatarVideo}
+          nativeControls
+          contentFit="contain"
+        />
+      ) : avatarStatus === 'not-found' ? (
+        <Text style={styles.placeholder}>
+          Nenhum avatar gerado ainda pra essa conta. Envie um vídeo e peça pra gerar o avatar a
+          partir dele.
+        </Text>
+      ) : (
+        <Text style={styles.error}>{avatarError}</Text>
+      )}
+    </ScrollView>
   );
 }
 
@@ -191,8 +260,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  content: {
     paddingHorizontal: 24,
     paddingTop: 64,
+    paddingBottom: 48,
   },
   header: {
     flexDirection: 'row',
@@ -267,5 +339,32 @@ const styles = StyleSheet.create({
   error: {
     color: '#c0392b',
     marginTop: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#eee',
+    marginVertical: 32,
+  },
+  avatarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  refreshLink: {
+    fontSize: 14,
+    color: '#111',
+    fontWeight: '600',
+    marginBottom: 24,
+  },
+  avatarState: {
+    marginBottom: 24,
+  },
+  avatarVideo: {
+    width: '100%',
+    aspectRatio: 9 / 16,
+    maxHeight: 480,
+    backgroundColor: '#000',
+    borderRadius: 8,
+    marginBottom: 24,
   },
 });

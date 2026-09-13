@@ -1,5 +1,22 @@
 # Backlog
 
+## [CONCLUÍDO] Ver o avatar já gerado, dentro do próprio app
+
+**Como** vendedor (usuário do LiveSellAI)
+**Eu quero** ver, na mesma tela onde envio meu vídeo, o avatar já gerado pra mim (se existir)
+**Para que** eu não precise pedir pra alguém rodar comandos manuais só pra eu conferir o resultado
+
+**Critérios de aceitação:**
+- [x] Backend: novo endpoint (`getLatestAvatar`, `GET /api/latest-avatar?tenantId=...`) que procura o blob mais recente em `avatars/<tenant>/` e devolve uma URL de leitura (SAS) — ou `{found:false}` se ainda não existe nenhum
+- [x] App: na tela de upload (`UploadScreen`), uma seção "Meu avatar" abaixo mostra o player (`expo-video`) com esse vídeo, ou uma mensagem dizendo que ainda não foi gerado nenhum, com botão "Atualizar"
+- [x] Testado localmente contra a Storage Account real (tenant com avatar existente e tenant sem nenhum)
+
+**Observação:** a geração do avatar em si (MuseTalk/F5-TTS) continua sendo disparada manualmente por enquanto (ver história anterior) — esta história é só sobre **visualizar** o resultado já existente.
+
+**Data:** 13/09/2026
+
+---
+
 ## [PENDENTE] POC de geração de avatar falante a partir do vídeo enviado (MuseTalk + F5-TTS)
 
 **Como** vendedor (usuário do LiveSellAI)
