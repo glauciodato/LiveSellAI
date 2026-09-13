@@ -85,6 +85,31 @@ else:
 open(path, 'w').write(content)
 "
 
+# Outro ponto de economia de VRAM: os modelos de detecção de rosto (dwpose
+# e o face detector) são carregados na GPU assim que o módulo é importado
+# (antes até do VAE/UNet), e ficam lá ocupando memória o tempo todo, mesmo
+# sendo usados só numa etapa curta e pontual. Em GPUs com pouca VRAM (ex:
+# GPUs fracionadas), isso é o suficiente pra faltar memória na hora de
+# carregar o VAE/UNet. Forçamos esses dois modelos a rodar na CPU (são
+# leves, o impacto de velocidade é pequeno), liberando toda a GPU pro
+# VAE/UNet.
+python -c "
+path = 'musetalk/utils/preprocessing.py'
+content = open(path).read()
+new_content = content.replace(
+    'device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")',
+    'device = torch.device(\"cpu\")  # forçado: libera GPU pro VAE/UNet'
+).replace(
+    'device = \"cuda\" if torch.cuda.is_available() else \"cpu\"',
+    'device = \"cpu\"  # forçado: libera GPU pro VAE/UNet'
+)
+if new_content != content:
+    open(path, 'w').write(new_content)
+    print('Patch aplicado -- detecção de rosto (dwpose/face detector) agora roda na CPU')
+else:
+    print('Patch de CPU na detecção de rosto já estava aplicado (ou texto mudou -- confira manualmente)')
+"
+
 echo ""
 echo "=== Baixando os pesos do MuseTalk (pode demorar, são vários GB) ==="
 # Isso roda ANTES de instalar F5-TTS/torch/transformers de propósito: o
