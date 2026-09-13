@@ -207,6 +207,7 @@ def _run_musetalk(video_path: str, audio_path: str, job_id: str) -> str:
             "--unet_config", unet_config_path,
             "--version", "v15",
             "--ffmpeg_path", "/usr/bin",
+            "--use_float16",  # reduz o uso de VRAM (~metade), à custa de precisão
         ],
         cwd=MUSETALK_DIR,
         check=True,
