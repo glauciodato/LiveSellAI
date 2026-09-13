@@ -110,6 +110,27 @@ else:
     print('Patch de CPU na detecção de rosto já estava aplicado (ou texto mudou -- confira manualmente)')
 "
 
+# Causa raiz do OOM em GPUs com pouca VRAM: unet.py carrega o checkpoint com
+# torch.load(model_path) SEM map_location -- como o checkpoint foi salvo a
+# partir de tensores CUDA, isso reconstrói os pesos EM FP32 DIRETO NA GPU,
+# antes mesmo da conversão pra float16 acontecer (que só roda depois, sobre
+# o modelo já carregado). Ou seja, o pico de memória em fp32 (3.4GB) sempre
+# acontecia, independente da flag --use_float16. Forçamos o load a passar
+# pela CPU primeiro; só depois o .half() (que já ativamos acima) e o
+# .to(device) movem a versão já em fp16 (bem menor) pra GPU.
+python -c "
+path = 'musetalk/models/unet.py'
+content = open(path).read()
+old = 'weights = torch.load(model_path) if torch.cuda.is_available() else torch.load(model_path, map_location=self.device)'
+new = 'weights = torch.load(model_path, map_location=\"cpu\")  # sempre via CPU: evita pico de fp32 na GPU antes do half()'
+if old in content:
+    content = content.replace(old, new)
+    open(path, 'w').write(content)
+    print('Patch aplicado -- pesos do UNet agora carregam via CPU antes de ir pra GPU')
+else:
+    print('Marcador do patch de torch.load não encontrado (ou já aplicado) -- confira manualmente')
+"
+
 echo ""
 echo "=== Baixando os pesos do MuseTalk (pode demorar, são vários GB) ==="
 # Isso roda ANTES de instalar F5-TTS/torch/transformers de propósito: o
