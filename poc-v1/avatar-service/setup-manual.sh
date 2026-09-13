@@ -62,6 +62,12 @@ echo ""
 echo "=== Instalando F5-TTS, Whisper e utilitários do handler ==="
 pip install f5-tts openai-whisper requests pyyaml
 
+# bitsandbytes vem como dependência opcional do F5-TTS e exige torch mais
+# novo que o 2.0.1 -- ao ser importado (o mmengine tenta, na inicialização,
+# registrar otimizadores baseados nele), quebra com AttributeError e derruba
+# a importação do mmpose/mmengine inteira. Não precisamos dele aqui.
+pip uninstall -y bitsandbytes || true
+
 echo ""
 echo "=== Instalando/fixando PyTorch 2.0.1 (cu118) ==="
 # Importante: isso roda DEPOIS do F5-TTS/Whisper de propósito -- essas
