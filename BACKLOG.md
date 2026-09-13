@@ -1,5 +1,23 @@
 # Backlog
 
+## [PENDENTE] Validar viabilidade de live com vídeo em loop reagindo a comentários
+
+**Como** responsável pelo produto LiveSellAI
+**Eu quero** validar tecnicamente se dá pra exibir um vídeo de produto em loop numa live e reagir (tocando um áudio de apresentação) quando alguém comenta
+**Para que** a gente saiba se essa ideia é viável antes de investir em construir a versão de verdade
+
+**Critérios de aceitação:**
+- [ ] Protótipo dentro do repositório (`poc-v1/live-poc/`), sem precisar de infraestrutura nova (Azure/backend)
+- [ ] Conecta no chat de uma live real do YouTube (API pública, só com API key) e mostra os comentários chegando
+- [ ] Vídeo de produto (configurável) toca em loop; ao chegar o primeiro comentário, dispara um áudio de apresentação (configurável)
+- [ ] Testado contra uma live real do YouTube (não mock)
+
+**Observação:** é uma validação inicial de viabilidade — não é a versão final do produto. Integração com Instagram/TikTok Live fica de fora por enquanto (acesso a comentários dessas plataformas exige aprovação de parceiro, processo mais longo).
+
+**Data:** 13/09/2026
+
+---
+
 ## [CONCLUÍDO] Listar meus vídeos enviados
 
 **Como** vendedor (usuário do LiveSellAI)
