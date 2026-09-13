@@ -1,10 +1,14 @@
 name: Deploy backend to Azure Functions
 
 # Builda e implanta o backend (poc-v1/backend) na Function App já criada
-# no Azure (livesellai-poc-backend), a cada push que mude esse diretório.
-# Autenticação via publish profile (secret AZURE_FUNCTIONAPP_PUBLISH_PROFILE
-# no repositório -- gerado com
-# `az functionapp deployment list-publishing-profiles`).
+# no Azure (livesellai-poc-backend, plano Flex Consumption), a cada push
+# que mude esse diretório.
+#
+# Autenticação via OIDC (login federado, sem senha armazenada): a Function
+# App usa Flex Consumption, que não suporta mais o método antigo de
+# "publish profile". Precisa de 3 secrets no repositório -- AZURE_CLIENT_ID,
+# AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID -- gerados com um App Registration
+# + federated credential (ver poc-v1/backend/README.md).
 
 on:
   push:
@@ -13,6 +17,10 @@ on:
       - "poc-v1/backend/**"
       - ".github/workflows/backend-deploy.yml"
   workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
 
 env:
   AZURE_FUNCTIONAPP_NAME: livesellai-poc-backend
@@ -36,9 +44,15 @@ jobs:
           cd '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           npm ci --omit=dev
 
+      - name: Login no Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy na Function App
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
