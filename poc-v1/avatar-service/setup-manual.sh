@@ -73,11 +73,17 @@ fi
 
 echo ""
 echo "=== Instalando mmengine/mmcv/mmdet/mmpose ==="
+# Este Pod tem o driver da GPU, mas não o CUDA toolkit completo (falta o
+# nvcc) -- por isso essas três instalações rodam com CUDA_VISIBLE_DEVICES=""
+# (só durante o build), forçando o mmcv a compilar as versões CPU-only dos
+# operadores, em vez de tentar (e falhar) compilar com CUDA. A parte pesada
+# de verdade (MuseTalk/F5-TTS/Whisper) continua usando a GPU normalmente --
+# só a etapa de detecção de rosto/pose fica em CPU.
 pip3 install mmengine
-pip3 install --no-build-isolation "mmcv==2.0.1"
-pip3 install --no-build-isolation "mmdet==3.1.0"
+CUDA_VISIBLE_DEVICES="" pip3 install --no-build-isolation "mmcv==2.0.1"
+CUDA_VISIBLE_DEVICES="" pip3 install --no-build-isolation "mmdet==3.1.0"
 pip3 install cython numpy
-pip3 install --no-build-isolation "mmpose==1.1.0"
+CUDA_VISIBLE_DEVICES="" pip3 install --no-build-isolation "mmpose==1.1.0"
 
 echo ""
 echo "=== Instalando F5-TTS, Whisper e utilitários do handler ==="
