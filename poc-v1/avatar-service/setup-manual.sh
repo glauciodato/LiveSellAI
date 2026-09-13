@@ -79,6 +79,12 @@ echo "=== Instalando/fixando PyTorch 2.0.1 (cu118) ==="
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 \
   --index-url https://download.pytorch.org/whl/cu118
 
+# Mesmo motivo: o F5-TTS também costuma puxar uma versão de transformers
+# bem mais nova que a que o MuseTalk pede (4.39.2) -- versões recentes
+# têm inclusive um bug próprio (NameError em accelerate.py) que quebra a
+# importação do mmdet. Fixamos de volta à versão que o MuseTalk testou.
+pip install "transformers==4.39.2"
+
 echo ""
 echo "=== Instalando mmengine/mmcv/mmdet/mmpose ==="
 # Este Pod tem o driver da GPU, mas não o CUDA toolkit completo (falta o
