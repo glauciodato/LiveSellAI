@@ -39,6 +39,10 @@ pip3 --version
 nvidia-smi || echo "AVISO: nvidia-smi não encontrado -- confirme que este Pod tem GPU."
 
 echo ""
+echo "=== Instalando compilador C++ (necessário para compilar mmcv/mmdet/mmpose) ==="
+apt-get update -qq && apt-get install -y -qq build-essential
+
+echo ""
 echo "=== Preparando pip/setuptools ==="
 pip3 install --upgrade pip setuptools wheel
 
