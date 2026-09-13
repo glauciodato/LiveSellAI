@@ -1,5 +1,34 @@
 # Backlog
 
+## [PENDENTE] POC de geração de avatar falante a partir do vídeo enviado (MuseTalk + F5-TTS)
+
+**Como** vendedor (usuário do LiveSellAI)
+**Eu quero** que, a partir do vídeo de ~2 minutos que já enviei, o sistema gere um avatar falando um texto arbitrário que eu forneça
+**Para que** eu possa usar esse avatar em vendas ao vivo sem precisar regravar vídeo toda vez
+
+**Decisões técnicas tomadas nesta sessão:**
+- Modelo de sincronização labial: **Tencent MuseTalk v1.5** (licença MIT, uso comercial liberado, ~30 FPS, 8–12 GB VRAM) — escolhido em vez do LatentSync v1.6 (melhor qualidade visual, porém licença OpenRAIL++ nos pesos e ≥18 GB VRAM) e em vez de TalkingGaussian/GeneFace++ (não-comerciais por dependerem do Basel Face Model)
+- Clonagem/síntese de voz: **F5-TTS** (zero-shot a partir de 5–15s do próprio áudio do vídeo, suporta português)
+- Infraestrutura de execução: **RunPod Serverless** (GPU sob demanda, pay-per-uso) — escolhido em vez de VM com GPU sempre ligada no Azure ou execução local (sem GPU Nvidia disponível nas máquinas do time)
+
+**Critérios de aceitação:**
+- [x] Serviço (Docker) recebe: URL do vídeo de origem (SAS de leitura), texto a ser falado, e URL de upload do resultado (SAS de escrita) *(código escrito em `poc-v1/avatar-service/`, não validado em GPU real ainda)*
+- [x] Pipeline: extrai amostra de áudio do vídeo → clona voz e sintetiza o texto com F5-TTS → gera vídeo com sincronização labial via MuseTalk → envia o resultado para o Azure Blob Storage *(implementado no `handler.py`, idem)*
+- [x] Backend (Azure Function) ganha um endpoint que orquestra a chamada ao RunPod (gera as URLs necessárias e aciona o job) *(`generateAvatar` + `getAvatarStatus`, testados localmente contra a Storage Account real — geração das URLs SAS confirmada; chamada ao RunPod ainda não testada por falta de endpoint configurado)*
+- [ ] Teste real ponta a ponta: vídeo já enviado nesta POC → avatar gerado com um texto novo → resultado acessível no Azure Blob Storage
+- [x] Documentação de deploy do serviço (build/push da imagem, criação do Pod/endpoint, variáveis de ambiente necessárias) — ver `poc-v1/avatar-service/README.md`
+
+**Observações / histórico de tentativas de infraestrutura:**
+- **RunPod**: bloqueado por problema no pagamento internacional (cartão recusado) — mantido como opção "Opção B" no README, caso o usuário resolva o pagamento depois. O `handler.py` já suporta o modo serverless do RunPod nativamente.
+- **Azure (ACI/AKS/VM com GPU)**: subscription nova, cota de GPU (famílias NC/ND/NV) em **0** em todas as famílias, confirmado via `az vm list-usage`. Pedido de aumento de cota é gratuito mas pode demorar dias ou ser negado — usuário decidiu abrir o pedido em paralelo e não esperar por ele.
+- **Vast.ai**: escolhido como alternativa imediata. Diferença importante: não builda a imagem a partir do GitHub como o RunPod — por isso foi criado `.github/workflows/avatar-service-image.yml`, que builda e publica a imagem no GHCR (`ghcr.io/glauciodato/livesellai/avatar-service`) a cada mudança em `poc-v1/avatar-service/`. O "Serverless" do Vast.ai tem arquitetura própria (PyWorker HTTP), mais trabalhosa de adaptar agora — decidido validar primeiro rodando manualmente num Pod on-demand comum (`handler.py` ganhou um modo CLI para isso, além do modo RunPod).
+- Testado localmente (num Mac, sem GPU) que as dependências mais arriscadas do MuseTalk (`mmcv`, `mmdet`, `mmpose`) **instalam** com alguns ajustes — não confirma que a inferência funciona, só que a instalação não é um bloqueio fundamental.
+- Falta também uma tela no app para disparar a geração e acompanhar o status (hoje só é possível via `curl`/CLI direto).
+
+**Data:** 13/09/2026
+
+---
+
 ## [CONCLUÍDO] POC inicial do app (Expo) com login por e-mail e upload de vídeo para Azure Blob Storage
 
 **Como** vendedor (usuário do LiveSellAI)
@@ -15,7 +44,7 @@
 - [x] Nome do blob inclui identificação do tenant (e-mail) para simular isolamento multi-tenant
 - [x] Documentação (README) com passos para criar a Storage Account/container no Azure e rodar o app e o backend localmente
 
-**Observação:** upload real contra uma Storage Account do Azure ainda não foi testado ponta a ponta nesta sessão (nenhuma conta Azure foi provisionada aqui) — validar com `poc-v1/infra/create-storage.sh` + `az login` antes de considerar o fluxo 100% ponta a ponta.
+**Observação (atualizada em 11/09/2026):** Storage Account `livesellaipoc4821` (Brazil South, resource group `rg-livesellai-poc`) criada no Azure via Cloud Shell (login local do Azure CLI foi bloqueado por política de "Security defaults" do tenant — contornado usando o Cloud Shell, que autentica pela sessão do portal). Fluxo completo validado ponta a ponta nesta máquina: backend (Azure Function via `func start`) rodando localmente com as credenciais reais, chamado via `POST /api/generate-sas-token`, gerou um SAS real; o `PUT` do vídeo de teste usando essa URL retornou `201 Created` e o MD5 do arquivo bateu com o `Content-MD5` devolvido pelo Azure (upload íntegro). Confirmado também que a conta bloqueia acesso público (`409 PublicAccessNotPermitted` sem SAS). Falta apenas testar a partir do app Expo em si (UI) e em iOS/Android físicos — a lógica de backend + Azure já está validada de ponta a ponta.
 
 **Data:** 11/09/2026
 

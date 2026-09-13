@@ -1,2 +1,10 @@
 # macOS
 .DS_Store
+
+# Vídeos de teste manual (não fazem parte do código do projeto)
+/Videos-Envio-Teste/
+*.mp4
+*.mov
+
+# Documentos de pesquisa/referência pessoais (não versionados)
+/poc-v1/Pesquisa Gemini Modelo Avatar.md

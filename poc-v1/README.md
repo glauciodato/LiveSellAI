@@ -8,9 +8,10 @@ Storage, rodando a partir do mesmo código em Web, iOS e Android.
 
 ```
 poc-v1/
-├── app/       App Expo (React Native + Web) — tela de e-mail e upload de vídeo
-├── backend/   Azure Function leve — gera o SAS token de upload sob demanda
-└── infra/     Script para criar a Storage Account/container no Azure
+├── app/             App Expo (React Native + Web) — tela de e-mail e upload de vídeo
+├── backend/         Azure Function leve — gera SAS tokens e orquestra a geração do avatar
+├── avatar-service/  Serviço RunPod Serverless (MuseTalk + F5-TTS) — gera o avatar a partir do vídeo
+└── infra/           Scripts para criar a Storage Account/container no Azure
 ```
 
 ### Por que um backend, mesmo em uma POC?
@@ -98,9 +99,31 @@ Fluxo no app:
 2. Selecione um vídeo da galeria ou grave um novo (câmera disponível apenas em iOS/Android).
 3. Toque em "Enviar para o Azure Blob Storage".
 
+## 4. Gerar um avatar a partir do vídeo enviado (opcional)
+
+Requer configurar o `avatar-service` no RunPod primeiro — ver
+[`avatar-service/README.md`](./avatar-service/README.md) para o passo a
+passo completo (criar conta, configurar o Serverless Endpoint, Network
+Volume, etc.). Ainda não há tela no app para isso; teste direto nos
+endpoints do backend:
+
+```bash
+curl -X POST http://localhost:7071/api/generate-avatar \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenantId": "usuario_at_empresa-com",
+    "sourceBlobName": "tenants/usuario_at_empresa-com/171...-video.mp4",
+    "text": "Texto que o avatar deve falar"
+  }'
+# -> { "jobId": "...", "status": "IN_QUEUE", "outputBlobUrl": "..." }
+
+curl "http://localhost:7071/api/avatar-status?jobId=<jobId retornado acima>"
+```
+
 ## Limitações conhecidas desta POC
 
 - Sem autenticação real (qualquer e-mail é aceito, sem verificação).
 - Sem persistência de metadados dos vídeos (nome do blob, tenant, data) em um banco de dados — hoje eles só existem como caminho dentro do próprio Blob Storage.
 - Sem tela de listagem/histórico dos vídeos enviados.
 - CORS do backend liberado para qualquer origem (`*`) — ajustar antes de qualquer uso além de desenvolvimento local.
+- Geração de avatar (`avatar-service`) ainda não foi testada em GPU real — ver limitações detalhadas em [`avatar-service/README.md`](./avatar-service/README.md).
