@@ -11,7 +11,17 @@
     "CORS_ALLOWED_ORIGIN": "*",
 
     "RUNPOD_API_KEY": "<api-key-do-runpod>",
-    "RUNPOD_ENDPOINT_ID": "<id-do-serverless-endpoint-do-runpod>"
+    "RUNPOD_ENDPOINT_ID": "<id-do-serverless-endpoint-do-runpod>",
+
+    "PGHOST": "<nome-do-servidor>.postgres.database.azure.com",
+    "PGPORT": "5432",
+    "PGDATABASE": "livesellai",
+    "PGUSER": "<usuário-admin-do-postgres>",
+    "PGSSLMODE": "require",
+
+    "PGPASSWORD": "<senha-do-postgres (só pra dev local; em produção o App Setting é a referência @Microsoft.KeyVault(...), resolvida pela plataforma)>",
+    "KEY_VAULT_NAME": "<nome-do-key-vault>",
+    "PG_PASSWORD_SECRET_NAME": "pg-admin-password"
   },
   "Host": {
     "CORS": "*"

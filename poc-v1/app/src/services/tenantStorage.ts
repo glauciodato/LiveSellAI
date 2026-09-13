@@ -2,14 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Tenant } from '../types/tenant';
 
 /**
- * Armazenamento local/mock do tenant atual.
- *
- * Nesta POC não existe backend de autenticação nem banco de dados de
- * contas: o e-mail informado pelo usuário é salvo no dispositivo
- * (AsyncStorage, funciona em Web/iOS/Android) e passa a identificar o
- * tenant em todas as chamadas subsequentes (ex: caminho do blob no Azure
- * Storage). Numa versão futura isso será substituído por um cadastro e
- * autenticação reais no backend.
+ * Guarda no dispositivo (AsyncStorage, funciona em Web/iOS/Android) a conta
+ * já autenticada de verdade no backend (cadastro/login com senha), pra não
+ * pedir login a cada vez que o app abre.
  */
 const TENANT_STORAGE_KEY = '@livesellai/tenant';
 
@@ -21,8 +16,13 @@ export async function getStoredTenant(): Promise<Tenant | null> {
 
   try {
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed.email === 'string') {
-      return { email: parsed.email };
+    if (
+      parsed &&
+      typeof parsed.id === 'number' &&
+      typeof parsed.name === 'string' &&
+      typeof parsed.email === 'string'
+    ) {
+      return { id: parsed.id, name: parsed.name, email: parsed.email };
     }
     return null;
   } catch {
@@ -30,18 +30,10 @@ export async function getStoredTenant(): Promise<Tenant | null> {
   }
 }
 
-export async function saveTenant(email: string): Promise<Tenant> {
-  const tenant: Tenant = { email: email.trim().toLowerCase() };
+export async function saveTenant(tenant: Tenant): Promise<void> {
   await AsyncStorage.setItem(TENANT_STORAGE_KEY, JSON.stringify(tenant));
-  return tenant;
 }
 
 export async function clearTenant(): Promise<void> {
   await AsyncStorage.removeItem(TENANT_STORAGE_KEY);
-}
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export function isValidEmail(email: string): boolean {
-  return EMAIL_REGEX.test(email.trim());
 }

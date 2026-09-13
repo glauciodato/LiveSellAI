@@ -22,14 +22,13 @@ escopado a um único blob, e faz o upload do vídeo **diretamente** para o
 Azure Blob Storage usando esse token. O backend não recebe o arquivo de
 vídeo em nenhum momento — apenas autoriza o upload.
 
-### Multi-tenant (mock desta fase)
+### Multi-tenant
 
-Não há senha nem cadastro nesta POC. O e-mail informado na tela inicial é
-salvo localmente no dispositivo (via `AsyncStorage`) e passa a identificar
-o tenant: ele é usado como prefixo do caminho do blob
-(`tenants/<email-sanitizado>/<arquivo>`), simulando o isolamento entre
-contas. Numa versão futura isso será substituído por autenticação e um
-cadastro de tenants reais no backend.
+Cadastro e login são de verdade: nome, e-mail e senha ficam gravados no
+Azure Database for PostgreSQL Flexible Server (senha com hash `bcrypt`,
+nunca em texto puro). Depois de autenticado, o e-mail da conta é usado
+como prefixo do caminho do blob (`tenants/<email-sanitizado>/<arquivo>`),
+garantindo o isolamento entre contas no Blob Storage.
 
 ## Pré-requisitos
 
@@ -95,6 +94,24 @@ secrets do repositório `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`,
 > App Registration + federated credential (ver histórico de comandos no
 > `BACKLOG.md`).
 
+### Banco de dados (Postgres) e segredos (Key Vault)
+
+O cadastro/login usa um Azure Database for PostgreSQL Flexible Server
+(`livesellai-poc-db-centralus`, tier Burstable — o menor disponível, só
+para desenvolvimento). A senha do usuário admin do Postgres nunca fica em
+texto puro nas configurações do Function App: ela é guardada num Azure
+Key Vault (`livesellai-poc-kv`) e referenciada via
+`@Microsoft.KeyVault(SecretUri=...)` no App Setting `PGPASSWORD` — o
+Function App lê o segredo em runtime usando sua identidade gerenciada
+(Managed Identity), sem nenhuma credencial fixa.
+
+Rodando localmente (`func start`), essa resolução automática de
+`@Microsoft.KeyVault(...)` não existe (é um recurso da plataforma do App
+Service/Functions no Azure) — por isso `local.settings.json` continua
+guardando a senha em texto puro só para desenvolvimento local (arquivo
+gitignored, nunca sai da sua máquina). Ver `src/lib/db.js` para os
+detalhes de como a senha é resolvida nos dois cenários.
+
 ## 3. Rodar o app (Expo)
 
 ```bash
@@ -113,7 +130,7 @@ npm run android  # abre no emulador Android (ou escaneie o QR code com o Expo Go
 > da sua máquina na rede local (ex: `http://192.168.0.10:7071/api`).
 
 Fluxo no app:
-1. Informe um e-mail na tela inicial (não há senha nesta fase).
+1. Cadastre-se (nome, e-mail e senha) ou entre com uma conta já existente.
 2. Selecione um vídeo da galeria ou grave um novo (câmera disponível apenas em iOS/Android).
 3. Toque em "Enviar para o Azure Blob Storage".
 
@@ -140,7 +157,6 @@ curl "http://localhost:7071/api/avatar-status?jobId=<jobId retornado acima>"
 
 ## Limitações conhecidas desta POC
 
-- Sem autenticação real (qualquer e-mail é aceito, sem verificação).
 - Sem persistência de metadados dos vídeos (nome do blob, tenant, data) em um banco de dados — hoje eles só existem como caminho dentro do próprio Blob Storage.
 - Sem tela de listagem/histórico dos vídeos enviados.
 - CORS do backend liberado para qualquer origem (`*`) — ajustar antes de qualquer uso além de desenvolvimento local.

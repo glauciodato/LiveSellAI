@@ -1,15 +1,6 @@
 import { Platform } from 'react-native';
 import { File, UploadType } from 'expo-file-system';
-
-/**
- * URL base do backend leve (Azure Function) responsável por gerar o SAS
- * token de upload. Configurável via variável de ambiente pública do Expo
- * (embutida no bundle em tempo de build — não coloque segredos aqui).
- *
- * Ver poc-v1/app/.env.example e poc-v1/backend/README.md.
- */
-const BACKEND_URL =
-  process.env.EXPO_PUBLIC_BACKEND_URL ?? 'http://localhost:7071/api';
+import { BACKEND_URL } from '../config';
 
 export interface RequestUploadUrlResult {
   /** URL com SAS token, usada para o PUT direto no Azure Blob Storage. */

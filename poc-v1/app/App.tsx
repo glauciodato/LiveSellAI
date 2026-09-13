@@ -2,16 +2,21 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import LoginScreen from './src/screens/LoginScreen';
+import SignupScreen from './src/screens/SignupScreen';
 import UploadScreen from './src/screens/UploadScreen';
 import { clearTenant, getStoredTenant } from './src/services/tenantStorage';
+import type { Tenant } from './src/types/tenant';
+
+type AuthScreen = 'login' | 'signup';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const [tenantEmail, setTenantEmail] = useState<string | null>(null);
+  const [tenant, setTenant] = useState<Tenant | null>(null);
+  const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
 
   useEffect(() => {
     getStoredTenant()
-      .then((tenant) => setTenantEmail(tenant?.email ?? null))
+      .then(setTenant)
       .finally(() => setLoading(false));
   }, []);
 
@@ -24,19 +29,32 @@ export default function App() {
     );
   }
 
-  return (
-    <>
-      {tenantEmail ? (
+  function renderContent() {
+    if (tenant) {
+      return (
         <UploadScreen
-          tenantEmail={tenantEmail}
+          tenantEmail={tenant.email}
           onLogout={async () => {
             await clearTenant();
-            setTenantEmail(null);
+            setTenant(null);
+            setAuthScreen('login');
           }}
         />
-      ) : (
-        <LoginScreen onLogin={setTenantEmail} />
-      )}
+      );
+    }
+
+    if (authScreen === 'signup') {
+      return (
+        <SignupScreen onSignup={setTenant} onNavigateToLogin={() => setAuthScreen('login')} />
+      );
+    }
+
+    return <LoginScreen onLogin={setTenant} onNavigateToSignup={() => setAuthScreen('signup')} />;
+  }
+
+  return (
+    <>
+      {renderContent()}
       <StatusBar style="auto" />
     </>
   );

@@ -1,5 +1,27 @@
 # Backlog
 
+## [CONCLUÍDO] Cadastro e login de verdade (com senha), usando Postgres
+
+**Como** vendedor (usuário do LiveSellAI)
+**Eu quero** criar uma conta com nome, e-mail e senha, e fazer login com essas credenciais
+**Para que** minha conta seja protegida de verdade, e não só "informar um e-mail qualquer" como é hoje
+
+**Critérios de aceitação:**
+- [x] Instância do Azure Database for PostgreSQL Flexible Server provisionada (tier Burstable, o menor disponível — só para desenvolvimento/POC)
+- [x] Tabela de usuários/tenants criada (nome, e-mail único, hash da senha, data de criação)
+- [x] Backend: endpoint de cadastro (`POST /api/register`) — valida e-mail único, guarda a senha com hash (bcrypt), nunca em texto puro
+- [x] Backend: endpoint de login (`POST /api/login`) — valida e-mail + senha
+- [x] App: tela de cadastro (nome, e-mail, senha, confirmar senha) e tela de login (e-mail, senha), substituindo a tela atual de "só e-mail"
+- [x] Testado localmente contra o Postgres real
+
+**Observação:** isso substitui o mock atual (e-mail salvo só no `AsyncStorage`, sem validação nenhuma) por autenticação de verdade. O isolamento multi-tenant passa a ser garantido pelo cadastro no banco, não só pela convenção de nomes de pasta no Blob Storage.
+
+**Implementado também (além do previsto originalmente):** a senha do Postgres não fica em texto puro nas configurações do Function App — foi criado um Azure Key Vault (`livesellai-poc-kv`) com Managed Identity, e o App Setting `PGPASSWORD` guarda só uma referência (`@Microsoft.KeyVault(...)`), resolvida pela plataforma em runtime.
+
+**Data:** 13/09/2026
+
+---
+
 ## [CONCLUÍDO] Implantar o backend de verdade no Azure (deploy automático via GitHub Actions)
 
 **Como** desenvolvedor do LiveSellAI

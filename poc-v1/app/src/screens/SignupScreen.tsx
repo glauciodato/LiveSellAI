@@ -9,44 +9,56 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { isValidEmail, login } from '../services/authService';
+import { isValidEmail, register } from '../services/authService';
 import { saveTenant } from '../services/tenantStorage';
 import type { Tenant } from '../types/tenant';
 
-interface LoginScreenProps {
-  onLogin: (tenant: Tenant) => void;
-  onNavigateToSignup: () => void;
+const MIN_PASSWORD_LENGTH = 6;
+
+interface SignupScreenProps {
+  onSignup: (tenant: Tenant) => void;
+  onNavigateToLogin: () => void;
 }
 
-/**
- * Tela de login: e-mail + senha de verdade, validados contra o backend
- * (Postgres). Substitui o mock antigo que aceitava qualquer e-mail sem
- * validação nenhuma.
- */
-export default function LoginScreen({ onLogin, onNavigateToSignup }: LoginScreenProps) {
+/** Tela de cadastro: nome, e-mail e senha (com confirmação). */
+export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScreenProps) {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit() {
+    if (!name.trim()) {
+      setError('Informe seu nome.');
+      return;
+    }
     if (!isValidEmail(email)) {
       setError('Informe um e-mail válido.');
       return;
     }
-    if (!password) {
-      setError('Informe sua senha.');
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('As senhas não conferem.');
       return;
     }
 
     setError(null);
     setSubmitting(true);
     try {
-      const tenant = await login({ email: email.trim().toLowerCase(), password });
+      const tenant = await register({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
       await saveTenant(tenant);
-      onLogin(tenant);
+      onSignup(tenant);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro inesperado ao entrar.');
+      setError(err instanceof Error ? err.message : 'Erro inesperado ao cadastrar.');
     } finally {
       setSubmitting(false);
     }
@@ -57,8 +69,19 @@ export default function LoginScreen({ onLogin, onNavigateToSignup }: LoginScreen
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>LiveSellAI</Text>
-      <Text style={styles.subtitle}>Entre com seu e-mail e senha.</Text>
+      <Text style={styles.title}>Criar conta</Text>
+      <Text style={styles.subtitle}>Informe seus dados para começar a usar o LiveSellAI.</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome"
+        autoCapitalize="words"
+        value={name}
+        onChangeText={(value) => {
+          setName(value);
+          if (error) setError(null);
+        }}
+      />
 
       <TextInput
         style={styles.input}
@@ -75,13 +98,26 @@ export default function LoginScreen({ onLogin, onNavigateToSignup }: LoginScreen
 
       <TextInput
         style={styles.input}
-        placeholder="Senha"
+        placeholder="Senha (mínimo 6 caracteres)"
         secureTextEntry
         autoCapitalize="none"
         autoCorrect={false}
         value={password}
         onChangeText={(value) => {
           setPassword(value);
+          if (error) setError(null);
+        }}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Confirmar senha"
+        secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
+        value={confirmPassword}
+        onChangeText={(value) => {
+          setConfirmPassword(value);
           if (error) setError(null);
         }}
         onSubmitEditing={handleSubmit}
@@ -97,14 +133,14 @@ export default function LoginScreen({ onLogin, onNavigateToSignup }: LoginScreen
         {submitting ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Entrar</Text>
+          <Text style={styles.buttonText}>Cadastrar</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Ainda não tem conta?</Text>
-        <TouchableOpacity onPress={onNavigateToSignup}>
-          <Text style={styles.footerLink}>Cadastre-se</Text>
+        <Text style={styles.footerText}>Já tem conta?</Text>
+        <TouchableOpacity onPress={onNavigateToLogin}>
+          <Text style={styles.footerLink}>Entrar</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
