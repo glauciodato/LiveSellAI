@@ -51,8 +51,11 @@ fi
 cd ~/musetalk
 
 echo ""
-echo "=== Instalando PyTorch 2.0.1 (cu118) ==="
-pip3 install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 \
+echo "=== Instalando PyTorch (cu118) ==="
+# O MuseTalk documenta torch==2.0.1, mas essa versão não tem build para
+# Python 3.12+ (o índice do cu118 só tem a partir da 2.2.0 para este Python).
+# Deixamos sem versão fixa para o pip resolver a mais recente compatível.
+pip3 install torch torchvision torchaudio \
   --index-url https://download.pytorch.org/whl/cu118
 
 echo ""
