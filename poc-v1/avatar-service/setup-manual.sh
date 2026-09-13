@@ -55,21 +55,34 @@ fi
 cd ~/musetalk
 
 # Bug do próprio MuseTalk: a flag --use_float16 é lida em scripts/inference.py
-# mas load_all_model() nunca repassa esse parâmetro pro UNet(...), então a
-# flag nunca tem efeito nenhum (o modelo sempre carrega em fp32, dobrando o
-# uso de VRAM). Patch direto no arquivo pra sempre carregar em float16 --
-# reduz bastante o uso de memória, importante em GPUs com pouca VRAM.
+# mas load_all_model() nunca repassa esse parâmetro pro UNet(...) nem pro
+# VAE(...), então a flag nunca tem efeito nenhum (os dois sempre carregam em
+# fp32, dobrando o uso de VRAM). Patch direto no arquivo pra sempre carregar
+# os dois em float16 -- reduz bastante o uso de memória, importante em GPUs
+# com pouca VRAM (ex: GPUs fracionadas em provedores mais baratos).
 python -c "
 path = 'musetalk/utils/utils.py'
 content = open(path).read()
-marker = 'model_path=unet_model_path,\n        device=device'
+
+unet_marker = 'model_path=unet_model_path,\n        device=device'
 if 'use_float16=True' not in content:
-    new_content = content.replace(marker, 'model_path=unet_model_path,\n        use_float16=True,\n        device=device')
-    assert new_content != content, 'Patch do use_float16 falhou -- texto esperado não encontrado em utils.py'
-    open(path, 'w').write(new_content)
-    print('Patch use_float16 aplicado em musetalk/utils/utils.py')
+    content = content.replace(unet_marker, 'model_path=unet_model_path,\n        use_float16=True,\n        device=device')
+    assert 'use_float16=True' in content, 'Patch do UNet (use_float16) falhou -- texto esperado não encontrado'
+    print('Patch use_float16 (UNet) aplicado')
 else:
-    print('Patch use_float16 já estava aplicado')
+    print('Patch use_float16 (UNet) já estava aplicado')
+
+vae_marker = 'model_path = os.path.join(\"models\", vae_type),\n    )'
+vae_section = content.split('def load_all_model')[1].split('VAE(')[1][:200]
+if 'use_float16=True' not in vae_section:
+    new_content = content.replace(vae_marker, 'model_path = os.path.join(\"models\", vae_type),\n        use_float16=True,\n    )')
+    assert new_content != content, 'Patch do VAE (use_float16) falhou -- texto esperado não encontrado'
+    content = new_content
+    print('Patch use_float16 (VAE) aplicado')
+else:
+    print('Patch use_float16 (VAE) já estava aplicado')
+
+open(path, 'w').write(content)
 "
 
 echo ""
