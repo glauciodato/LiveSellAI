@@ -98,6 +98,7 @@ echo ""
 echo "✅ Tudo pronto! Para testar, rode:"
 echo ""
 echo "  source $VENV_DIR/bin/activate"
+echo "  export MUSETALK_DIR=$HOME/musetalk"
 echo '  cd ~/musetalk && python handler.py \'
 echo '    --video-url "<SAS de leitura do vídeo de origem>" \'
 echo '    --upload-url "<SAS de escrita do vídeo de destino>" \'

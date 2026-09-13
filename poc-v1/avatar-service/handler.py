@@ -43,7 +43,10 @@ from urllib.parse import urlsplit
 import requests
 import yaml
 
-MUSETALK_DIR = "/workspace/musetalk"
+# /workspace/musetalk é o caminho usado dentro da imagem Docker (RunPod/
+# Vast.ai). Em setups manuais (ex: setup-manual.sh, Runstack) o MuseTalk é
+# clonado em outro lugar (ex: ~/musetalk) -- por isso isso é configurável.
+MUSETALK_DIR = os.environ.get("MUSETALK_DIR", "/workspace/musetalk")
 
 # ---------------------------------------------------------------------------
 # Cache persistente (Network Volume do RunPod), para não re-baixar os pesos
