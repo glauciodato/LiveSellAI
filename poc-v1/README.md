@@ -77,6 +77,24 @@ retorna:
 }
 ```
 
+### Backend implantado no Azure (produção da POC)
+
+O backend também está implantado de verdade, numa Function App real (plano
+**Flex Consumption**): **`https://livesellai-poc-backend.azurewebsites.net/api`**.
+
+O deploy é automático via GitHub Actions
+(`.github/workflows/backend-deploy.yml`), a cada push que muda
+`poc-v1/backend/`. Autenticação por OIDC (login federado com um App
+Registration + federated credential — sem senha armazenada), usando os
+secrets do repositório `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`,
+`AZURE_SUBSCRIPTION_ID`.
+
+> **Nota:** Flex Consumption não suporta mais o "publish profile" clássico
+> do Azure Functions — por isso o workflow usa `azure/login` com OIDC em
+> vez disso. Se recriar a Function App do zero, é preciso recriar também o
+> App Registration + federated credential (ver histórico de comandos no
+> `BACKLOG.md`).
+
 ## 3. Rodar o app (Expo)
 
 ```bash

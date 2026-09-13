@@ -1,5 +1,28 @@
 # Backlog
 
+## [CONCLUÍDO] Implantar o backend de verdade no Azure (deploy automático via GitHub Actions)
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** que o backend rode de verdade no Azure (não só localmente), com deploy automático a cada mudança
+**Para que** o app consiga usar um backend real, acessível de qualquer lugar (inclusive de um celular via Expo Go)
+
+**Critérios de aceitação:**
+- [x] Function App criada no Azure (`livesellai-poc-backend`, plano **Flex Consumption** — o clássico "Linux Consumption" ficou indisponível por ~50min nessa subscription nova, tanto em Brazil South quanto East US)
+- [x] Variáveis de ambiente (Storage Account, container, CORS) configuradas na Function App
+- [x] GitHub Actions (`.github/workflows/backend-deploy.yml`) fazendo deploy automático a cada push em `poc-v1/backend/`
+- [x] Autenticação do workflow via **OIDC** (App Registration + federated credential — Flex Consumption não suporta mais "publish profile")
+- [x] Testado: os 3 endpoints (`generate-sas-token`, `generate-avatar`, `latest-avatar`) respondendo corretamente em `https://livesellai-poc-backend.azurewebsites.net/api`
+
+**Observações/pegadinhas encontradas:**
+- Precisou registrar o provider `Microsoft.Web` (mesmo padrão de `Microsoft.Storage`/`Microsoft.Compute` antes)
+- Node 20 já estava fora de suporte (usar `--runtime-version 24` na criação)
+- O primeiro Function App (Linux Consumption clássico) ficou retornando **503** por quase 1 hora, tanto em Brazil South quanto East US, mesmo com todas as operações do Activity Log mostrando "Succeeded" — indício de atraso de provisionamento de infraestrutura nessa subscription nova. Resolvido migrando pra **Flex Consumption**, que ficou pronto em poucos minutos.
+- O `subject` do federated credential precisou ser ajustado pro formato exato que esse GitHub manda (`repo:<owner>@<id>/<repo>@<id>:ref:refs/heads/main`, com IDs numéricos — não o formato simples `owner/repo` da documentação padrão)
+
+**Data:** 13/09/2026
+
+---
+
 ## [CONCLUÍDO] Ver o avatar já gerado, dentro do próprio app
 
 **Como** vendedor (usuário do LiveSellAI)
