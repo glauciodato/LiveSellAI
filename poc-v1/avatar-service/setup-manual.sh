@@ -41,7 +41,10 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
-python -m pip install --upgrade pip setuptools wheel
+# setuptools recentes (~80+) removeram o módulo pkg_resources, do qual o
+# setup.py (legado) do mmcv depende para instalar mesmo com
+# --no-build-isolation. Fixamos uma versão anterior a essa remoção.
+python -m pip install --upgrade pip wheel "setuptools<81"
 
 echo ""
 echo "=== Clonando o MuseTalk ==="
