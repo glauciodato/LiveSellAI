@@ -136,7 +136,32 @@ if [ ! -f "models/face-parse-bisent/resnet18-5c106cde.pth" ]; then
     -o models/face-parse-bisent/resnet18-5c106cde.pth
 fi
 
-echo "Conferindo se todos os pesos esperados estão presentes..."
+echo "Conferindo se todos os pesos esperados estão presentes (e tentando de novo o que faltar)..."
+# hf download, mesmo sem o mirror problemático, às vezes falha silenciosamente
+# para um arquivo pequeno específico dentro de um lote (sem gerar erro visível
+# no terminal) -- por isso confere arquivo por arquivo e tenta baixar nomeado
+# individualmente o que estiver faltando, em vez de só avisar.
+check_and_retry() {
+  local path="$1" repo="$2" local_dir="$3" include="$4"
+  if [ ! -f "$path" ]; then
+    echo "  $path ausente -- baixando de novo (${repo}:${include})..."
+    hf download "$repo" --local-dir "$local_dir" --include "$include"
+  fi
+}
+
+check_and_retry "models/musetalk/musetalk.json" "TMElyralab/MuseTalk" "models" "musetalk/musetalk.json"
+check_and_retry "models/musetalk/pytorch_model.bin" "TMElyralab/MuseTalk" "models" "musetalk/pytorch_model.bin"
+check_and_retry "models/musetalkV15/musetalk.json" "TMElyralab/MuseTalk" "models" "musetalkV15/musetalk.json"
+check_and_retry "models/musetalkV15/unet.pth" "TMElyralab/MuseTalk" "models" "musetalkV15/unet.pth"
+check_and_retry "models/sd-vae/config.json" "stabilityai/sd-vae-ft-mse" "models/sd-vae" "config.json"
+check_and_retry "models/sd-vae/diffusion_pytorch_model.bin" "stabilityai/sd-vae-ft-mse" "models/sd-vae" "diffusion_pytorch_model.bin"
+check_and_retry "models/whisper/config.json" "openai/whisper-tiny" "models/whisper" "config.json"
+check_and_retry "models/whisper/pytorch_model.bin" "openai/whisper-tiny" "models/whisper" "pytorch_model.bin"
+check_and_retry "models/whisper/preprocessor_config.json" "openai/whisper-tiny" "models/whisper" "preprocessor_config.json"
+check_and_retry "models/dwpose/dw-ll_ucoco_384.pth" "yzd-v/DWPose" "models/dwpose" "dw-ll_ucoco_384.pth"
+check_and_retry "models/syncnet/latentsync_syncnet.pt" "ByteDance/LatentSync" "models/syncnet" "latentsync_syncnet.pt"
+
+# Confirmação final -- se algo ainda faltar depois da segunda tentativa, avisa.
 for f in \
   models/musetalk/musetalk.json models/musetalk/pytorch_model.bin \
   models/musetalkV15/musetalk.json models/musetalkV15/unet.pth \
@@ -147,7 +172,7 @@ for f in \
   models/face-parse-bisent/79999_iter.pth models/face-parse-bisent/resnet18-5c106cde.pth
 do
   if [ ! -f "$f" ]; then
-    echo "⚠️  AVISO: $f não foi encontrado -- o teste provavelmente vai falhar nessa etapa."
+    echo "⚠️  AVISO: $f continua ausente mesmo após nova tentativa -- o teste provavelmente vai falhar nessa etapa."
   fi
 done
 
