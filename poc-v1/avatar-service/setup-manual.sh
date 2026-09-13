@@ -27,7 +27,7 @@ if ! apt-get install -y -qq python3.10 python3.10-venv python3.10-dev; then
   apt-get update -qq
   apt-get install -y -qq python3.10 python3.10-venv python3.10-dev
 fi
-apt-get install -y -qq build-essential
+apt-get install -y -qq build-essential ffmpeg
 
 echo ""
 echo "=== Ambiente ==="
