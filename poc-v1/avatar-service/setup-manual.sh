@@ -55,61 +55,13 @@ fi
 cd ~/musetalk
 
 echo ""
-echo "=== Instalando requirements.txt do MuseTalk ==="
-pip install -r requirements.txt
-
-echo ""
-echo "=== Instalando F5-TTS, Whisper e utilitários do handler ==="
-pip install f5-tts openai-whisper requests pyyaml
-
-# bitsandbytes vem como dependência opcional do F5-TTS e exige torch mais
-# novo que o 2.0.1 -- ao ser importado (o mmengine tenta, na inicialização,
-# registrar otimizadores baseados nele), quebra com AttributeError e derruba
-# a importação do mmpose/mmengine inteira. Não precisamos dele aqui.
-pip uninstall -y bitsandbytes || true
-
-echo ""
-echo "=== Instalando/fixando PyTorch 2.0.1 (cu118) ==="
-# Importante: isso roda DEPOIS do F5-TTS/Whisper de propósito -- essas
-# libs podem puxar (via suas próprias dependências) uma versão diferente
-# de torch. Reinstalamos a versão exata aqui, e só ENTÃO compilamos o
-# mmcv logo abaixo, contra essa versão final -- senão o mmcv fica com uma
-# extensão C++ compilada contra um torch que já não é mais o instalado
-# (erro "undefined symbol" ao importar).
-pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 \
-  --index-url https://download.pytorch.org/whl/cu118
-
-# Mesmo motivo: o F5-TTS também costuma puxar uma versão de transformers
-# bem mais nova que a que o MuseTalk pede (4.39.2) -- versões recentes
-# têm inclusive um bug próprio (NameError em accelerate.py) que quebra a
-# importação do mmdet. Fixamos de volta à versão que o MuseTalk testou.
-pip install "transformers==4.39.2"
-
-echo ""
-echo "=== Instalando mmengine/mmcv/mmdet/mmpose ==="
-# Este Pod tem o driver da GPU, mas não o CUDA toolkit completo (falta o
-# nvcc) -- por isso essas três instalações rodam com CUDA_VISIBLE_DEVICES=""
-# (só durante o build), forçando o mmcv a compilar as versões CPU-only dos
-# operadores, em vez de tentar (e falhar) compilar com CUDA. A parte pesada
-# de verdade (MuseTalk/F5-TTS/Whisper) continua usando a GPU normalmente --
-# só a etapa de detecção de rosto/pose fica em CPU.
-pip install mmengine
-CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmcv==2.0.1"
-CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmdet==3.1.0"
-pip install cython numpy
-CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmpose==1.1.0"
-
-echo ""
-echo "=== Baixando handler.py do repositório do projeto ==="
-cd ~
-if [ ! -d livesellai ]; then
-  git clone --depth 1 https://github.com/glauciodato/LiveSellAI.git livesellai
-fi
-cp livesellai/poc-v1/avatar-service/handler.py ~/musetalk/handler.py
-
-echo ""
 echo "=== Baixando os pesos do MuseTalk (pode demorar, são vários GB) ==="
-cd ~/musetalk
+# Isso roda ANTES de instalar F5-TTS/torch/transformers de propósito: o
+# comando `hf download` precisa de uma versão recente do huggingface_hub
+# (>=1.0), mas o transformers==4.39.2 que o MuseTalk usa exige uma versão
+# ANTERIOR (<1.0) -- se baixássemos os pesos depois, o pip ficaria
+# alternando entre as duas versões sem necessidade. Baixando os pesos
+# primeiro, o huggingface_hub novo só precisa durar até aqui.
 mkdir -p models/musetalk models/musetalkV15 models/syncnet models/dwpose models/face-parse-bisent models/sd-vae models/whisper
 pip install -U "huggingface_hub[cli]" gdown
 
@@ -175,6 +127,62 @@ do
     echo "⚠️  AVISO: $f continua ausente mesmo após nova tentativa -- o teste provavelmente vai falhar nessa etapa."
   fi
 done
+
+echo ""
+echo "=== Instalando requirements.txt do MuseTalk ==="
+pip install -r requirements.txt
+
+echo ""
+echo "=== Instalando F5-TTS, Whisper e utilitários do handler ==="
+pip install f5-tts openai-whisper requests pyyaml
+
+# bitsandbytes vem como dependência opcional do F5-TTS e exige torch mais
+# novo que o 2.0.1 -- ao ser importado (o mmengine tenta, na inicialização,
+# registrar otimizadores baseados nele), quebra com AttributeError e derruba
+# a importação do mmpose/mmengine inteira. Não precisamos dele aqui.
+pip uninstall -y bitsandbytes || true
+
+echo ""
+echo "=== Instalando/fixando PyTorch 2.0.1 (cu118) ==="
+# Importante: isso roda DEPOIS do F5-TTS/Whisper de propósito -- essas
+# libs podem puxar (via suas próprias dependências) uma versão diferente
+# de torch. Reinstalamos a versão exata aqui, e só ENTÃO compilamos o
+# mmcv logo abaixo, contra essa versão final -- senão o mmcv fica com uma
+# extensão C++ compilada contra um torch que já não é mais o instalado
+# (erro "undefined symbol" ao importar).
+pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 \
+  --index-url https://download.pytorch.org/whl/cu118
+
+# Mesmo motivo: o F5-TTS também costuma puxar uma versão de transformers
+# bem mais nova que a que o MuseTalk pede (4.39.2) -- versões recentes
+# têm inclusive um bug próprio (NameError em accelerate.py) que quebra a
+# importação do mmdet. Fixamos de volta à versão que o MuseTalk testou.
+# Isso também resolve o huggingface_hub (transformers==4.39.2 exige <1.0,
+# e o passo de download de pesos acima instalou uma versão >=1.0 --
+# instalar transformers aqui já rebaixa o huggingface_hub de volta).
+pip install "transformers==4.39.2"
+
+echo ""
+echo "=== Instalando mmengine/mmcv/mmdet/mmpose ==="
+# Este Pod tem o driver da GPU, mas não o CUDA toolkit completo (falta o
+# nvcc) -- por isso essas três instalações rodam com CUDA_VISIBLE_DEVICES=""
+# (só durante o build), forçando o mmcv a compilar as versões CPU-only dos
+# operadores, em vez de tentar (e falhar) compilar com CUDA. A parte pesada
+# de verdade (MuseTalk/F5-TTS/Whisper) continua usando a GPU normalmente --
+# só a etapa de detecção de rosto/pose fica em CPU.
+pip install mmengine
+CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmcv==2.0.1"
+CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmdet==3.1.0"
+pip install cython numpy
+CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmpose==1.1.0"
+
+echo ""
+echo "=== Baixando handler.py do repositório do projeto ==="
+cd ~
+if [ ! -d livesellai ]; then
+  git clone --depth 1 https://github.com/glauciodato/LiveSellAI.git livesellai
+fi
+cp livesellai/poc-v1/avatar-service/handler.py ~/musetalk/handler.py
 
 echo ""
 echo "✅ Tudo pronto! Para testar, rode:"
