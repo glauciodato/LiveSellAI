@@ -58,7 +58,13 @@ app.http('login', {
       return jsonResponse(200, { id: user.id, name: user.name, email: user.email });
     } catch (err) {
       context.error('Erro ao fazer login', err);
-      return jsonResponse(500, { error: 'Erro ao fazer login.' });
+      // DEBUG_ERRORS: só pra diagnosticar problemas em produção sem depender
+      // de log streaming/Application Insights — remover assim que resolvido.
+      const debug = process.env.DEBUG_ERRORS === 'true';
+      return jsonResponse(500, {
+        error: 'Erro ao fazer login.',
+        ...(debug ? { debug: { message: err.message, stack: err.stack } } : {}),
+      });
     }
   },
 });

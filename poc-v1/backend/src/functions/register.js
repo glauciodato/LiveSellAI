@@ -61,7 +61,13 @@ app.http('register', {
         return jsonResponse(409, { error: 'Já existe uma conta com esse e-mail.' });
       }
       context.error('Erro ao cadastrar usuário', err);
-      return jsonResponse(500, { error: 'Erro ao cadastrar usuário.' });
+      // DEBUG_ERRORS: só pra diagnosticar problemas em produção sem depender
+      // de log streaming/Application Insights — remover assim que resolvido.
+      const debug = process.env.DEBUG_ERRORS === 'true';
+      return jsonResponse(500, {
+        error: 'Erro ao cadastrar usuário.',
+        ...(debug ? { debug: { message: err.message, stack: err.stack } } : {}),
+      });
     }
   },
 });
