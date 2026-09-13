@@ -110,6 +110,29 @@ export async function uploadVideoToBlob({
   }
 }
 
+export interface VideoListItem {
+  blobName: string;
+  /** URL com SAS de leitura, temporária. */
+  url: string;
+  size: number | null;
+  lastModified: string;
+}
+
+/** Lista os vídeos já enviados por esse tenant, mais recentes primeiro. */
+export async function listVideos(tenantEmail: string): Promise<VideoListItem[]> {
+  const response = await fetch(
+    `${BACKEND_URL}/videos?tenantId=${encodeURIComponent(sanitizeTenantSegment(tenantEmail))}`
+  );
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Falha ao listar vídeos (HTTP ${response.status}). ${body}`);
+  }
+
+  const data = (await response.json()) as { videos: VideoListItem[] };
+  return data.videos;
+}
+
 export interface LatestAvatarResult {
   found: boolean;
   /** URL com SAS de leitura, presente só quando found === true. */

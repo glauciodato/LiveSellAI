@@ -1,5 +1,20 @@
 # Backlog
 
+## [CONCLUÍDO] Listar meus vídeos enviados
+
+**Como** vendedor (usuário do LiveSellAI)
+**Eu quero** ver a lista de vídeos que já enviei, não só o avatar já gerado
+**Para que** eu consiga conferir o que já mandei e escolher qual assistir
+
+**Critérios de aceitação:**
+- [x] Backend: endpoint (`GET /api/videos`) lista os vídeos do tenant logado (nome, tamanho, data de envio, URL de leitura com SAS temporário)
+- [x] App: nova seção na tela principal ("Meus vídeos enviados") com a lista, permitindo assistir a qualquer um deles
+- [x] Testado com vídeos reais já enviados no Blob Storage
+
+**Data:** 13/09/2026
+
+---
+
 ## [CONCLUÍDO] Cadastro e login de verdade (com senha), usando Postgres
 
 **Como** vendedor (usuário do LiveSellAI)

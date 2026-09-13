@@ -13,8 +13,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import {
   getLatestAvatar,
+  listVideos,
   requestUploadUrl,
   uploadVideoToBlob,
+  type VideoListItem,
 } from '../services/uploadService';
 
 interface UploadScreenProps {
@@ -31,6 +33,7 @@ interface SelectedVideo {
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 type AvatarStatus = 'loading' | 'found' | 'not-found' | 'error';
+type VideosStatus = 'loading' | 'loaded' | 'error';
 
 function guessFileName(uri: string, fallbackExtension = 'mp4'): string {
   const uriParts = uri.split('/');
@@ -39,6 +42,22 @@ function guessFileName(uri: string, fallbackExtension = 'mp4'): string {
     return lastPart.split('?')[0];
   }
   return `video-${Date.now()}.${fallbackExtension}`;
+}
+
+/** Mostra só o nome original do arquivo, sem o prefixo de pasta/timestamp do blob. */
+function formatVideoLabel(blobName: string): string {
+  const fileName = blobName.split('/').pop() ?? blobName;
+  return fileName.replace(/^\d+-/, '');
+}
+
+function formatVideoDate(iso: string): string {
+  return new Date(iso).toLocaleString('pt-BR');
+}
+
+function formatVideoSize(bytes: number | null): string {
+  if (bytes == null) return '';
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
 }
 
 /**
@@ -57,6 +76,27 @@ export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProp
   const [avatarError, setAvatarError] = useState<string | null>(null);
 
   const avatarPlayer = useVideoPlayer(avatarUrl);
+
+  const [videosStatus, setVideosStatus] = useState<VideosStatus>('loading');
+  const [videos, setVideos] = useState<VideoListItem[]>([]);
+  const [videosError, setVideosError] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<VideoListItem | null>(null);
+
+  const selectedVideoPlayer = useVideoPlayer(selectedVideo?.url ?? null);
+
+  async function loadVideos() {
+    setVideosStatus('loading');
+    setVideosError(null);
+    try {
+      const result = await listVideos(tenantEmail);
+      setVideos(result);
+      setVideosStatus('loaded');
+    } catch (err) {
+      setVideos([]);
+      setVideosStatus('error');
+      setVideosError(err instanceof Error ? err.message : 'Erro ao listar vídeos.');
+    }
+  }
 
   async function loadAvatar() {
     setAvatarStatus('loading');
@@ -79,6 +119,7 @@ export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProp
 
   useEffect(() => {
     loadAvatar();
+    loadVideos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantEmail]);
 
@@ -162,6 +203,7 @@ export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProp
 
       setStatus('success');
       setMessage(blobUrl);
+      loadVideos();
     } catch (err) {
       setStatus('error');
       setMessage(err instanceof Error ? err.message : 'Erro inesperado no upload.');
@@ -224,6 +266,54 @@ export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProp
         <Text style={styles.success}>Upload concluído! Blob: {message}</Text>
       ) : null}
       {status === 'error' && message ? <Text style={styles.error}>{message}</Text> : null}
+
+      <View style={styles.divider} />
+
+      <View style={styles.avatarHeader}>
+        <Text style={styles.title}>Meus vídeos enviados</Text>
+        <TouchableOpacity onPress={loadVideos} disabled={videosStatus === 'loading'}>
+          <Text style={styles.refreshLink}>Atualizar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {videosStatus === 'loading' ? (
+        <ActivityIndicator style={styles.avatarState} />
+      ) : videosStatus === 'error' ? (
+        <Text style={styles.error}>{videosError}</Text>
+      ) : videos.length === 0 ? (
+        <Text style={styles.placeholder}>Nenhum vídeo enviado ainda.</Text>
+      ) : (
+        <View style={styles.videoList}>
+          {videos.map((item) => (
+            <TouchableOpacity
+              key={item.blobName}
+              style={[
+                styles.videoListItem,
+                selectedVideo?.blobName === item.blobName && styles.videoListItemSelected,
+              ]}
+              onPress={() => setSelectedVideo(item)}
+            >
+              <Text style={styles.videoListItemName} numberOfLines={1}>
+                {formatVideoLabel(item.blobName)}
+              </Text>
+              <Text style={styles.videoListItemMeta}>
+                {formatVideoDate(item.lastModified)}
+                {item.size != null ? ` · ${formatVideoSize(item.size)}` : ''}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {selectedVideo ? (
+        <VideoView
+          key={selectedVideo.url}
+          player={selectedVideoPlayer}
+          style={styles.avatarVideo}
+          nativeControls
+          contentFit="contain"
+        />
+      ) : null}
 
       <View style={styles.divider} />
 
@@ -358,6 +448,31 @@ const styles = StyleSheet.create({
   },
   avatarState: {
     marginBottom: 24,
+  },
+  videoList: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  videoListItem: {
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  videoListItemSelected: {
+    borderColor: '#111',
+    backgroundColor: '#f5f5f5',
+  },
+  videoListItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111',
+  },
+  videoListItemMeta: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
   },
   avatarVideo: {
     width: '100%',
