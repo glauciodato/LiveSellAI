@@ -21,10 +21,13 @@ set -e
 # pip deste Pod não respeita a variável de ambiente PIP_BREAK_SYSTEM_PACKAGES
 # -- por isso injetamos a flag --break-system-packages logo após "install"
 # em toda chamada de pip3 (a flag só é aceita nessa posição, não antes).
+# --ignore-installed evita falhas do tipo "RECORD file not found" ao tentar
+# substituir pacotes pré-instalados via apt (comum em pip/setuptools/numpy
+# em imagens Debian/Ubuntu).
 pip3() {
   if [ "$1" = "install" ]; then
     shift
-    command pip3 install --break-system-packages "$@"
+    command pip3 install --break-system-packages --ignore-installed "$@"
   else
     command pip3 "$@"
   fi
