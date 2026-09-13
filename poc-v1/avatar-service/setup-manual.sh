@@ -110,17 +110,46 @@ cp livesellai/poc-v1/avatar-service/handler.py ~/musetalk/handler.py
 echo ""
 echo "=== Baixando os pesos do MuseTalk (pode demorar, são vários GB) ==="
 cd ~/musetalk
-pip install -U "huggingface_hub[cli]"
-sh ./download_weights.sh || true
+mkdir -p models/musetalk models/musetalkV15 models/syncnet models/dwpose models/face-parse-bisent models/sd-vae models/whisper
+pip install -U "huggingface_hub[cli]" gdown
 
-# O download_weights.sh usa comandos depreciados (huggingface-cli, gdown
-# --id) que podem falhar silenciosamente para arquivos específicos sem
-# derrubar o script inteiro. Confere e baixa de novo, de forma mais
-# robusta, o que estiver faltando.
-if [ ! -f "models/dwpose/dw-ll_ucoco_384.pth" ]; then
-  echo "dw-ll_ucoco_384.pth ausente -- baixando via 'hf download'..."
-  hf download yzd-v/DWPose --local-dir models/dwpose --include "dw-ll_ucoco_384.pth"
+# NÃO usamos o download_weights.sh original do MuseTalk: ele aponta pra um
+# mirror chinês do HuggingFace (hf-mirror.com), que se mostrou instável a
+# partir daqui -- várias vezes falhou silenciosamente pra arquivos
+# específicos sem interromper o script (ele sempre imprime "sucesso" no
+# final, mesmo com arquivos faltando). Baixamos direto do HuggingFace
+# oficial, um a um, e cada comando é seguro de rodar de novo (só baixa o
+# que ainda falta).
+hf download TMElyralab/MuseTalk --local-dir . --include "musetalk/musetalk.json" "musetalk/pytorch_model.bin"
+hf download TMElyralab/MuseTalk --local-dir . --include "musetalkV15/musetalk.json" "musetalkV15/unet.pth"
+hf download stabilityai/sd-vae-ft-mse --local-dir models/sd-vae --include "config.json" "diffusion_pytorch_model.bin"
+hf download openai/whisper-tiny --local-dir models/whisper --include "config.json" "pytorch_model.bin" "preprocessor_config.json"
+hf download yzd-v/DWPose --local-dir models/dwpose --include "dw-ll_ucoco_384.pth"
+hf download ByteDance/LatentSync --local-dir models/syncnet --include "latentsync_syncnet.pt"
+
+if [ ! -f "models/face-parse-bisent/79999_iter.pth" ]; then
+  # gdown removeu a flag --id em versões recentes -- o ID vai direto como argumento.
+  gdown 154JgKpzCPW82qINcVieuPH3fZ2e0P812 -O models/face-parse-bisent/79999_iter.pth
 fi
+if [ ! -f "models/face-parse-bisent/resnet18-5c106cde.pth" ]; then
+  curl -L https://download.pytorch.org/models/resnet18-5c106cde.pth \
+    -o models/face-parse-bisent/resnet18-5c106cde.pth
+fi
+
+echo "Conferindo se todos os pesos esperados estão presentes..."
+for f in \
+  models/musetalk/musetalk.json models/musetalk/pytorch_model.bin \
+  models/musetalkV15/musetalk.json models/musetalkV15/unet.pth \
+  models/sd-vae/config.json models/sd-vae/diffusion_pytorch_model.bin \
+  models/whisper/config.json models/whisper/pytorch_model.bin models/whisper/preprocessor_config.json \
+  models/dwpose/dw-ll_ucoco_384.pth \
+  models/syncnet/latentsync_syncnet.pt \
+  models/face-parse-bisent/79999_iter.pth models/face-parse-bisent/resnet18-5c106cde.pth
+do
+  if [ ! -f "$f" ]; then
+    echo "⚠️  AVISO: $f não foi encontrado -- o teste provavelmente vai falhar nessa etapa."
+  fi
+done
 
 echo ""
 echo "✅ Tudo pronto! Para testar, rode:"
