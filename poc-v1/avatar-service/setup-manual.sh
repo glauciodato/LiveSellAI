@@ -14,6 +14,12 @@
 
 set -e
 
+# Distros Debian/Ubuntu recentes (Python 3.11+) bloqueiam "pip install" fora
+# de um venv (PEP 668 -- "externally-managed-environment"). Como este é um
+# Pod descartável só para este teste, contornamos isso globalmente em vez
+# de montar um venv (que complicaria os passos seguintes do MuseTalk).
+export PIP_BREAK_SYSTEM_PACKAGES=1
+
 echo "=== Ambiente ==="
 python3 --version
 pip3 --version
@@ -38,15 +44,14 @@ pip3 install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 \
 
 echo ""
 echo "=== Instalando requirements.txt do MuseTalk ==="
-# Tenta primeiro com as versões originais (em Linux costumam ter wheel
-# disponível, ao contrário do que vimos no Mac). Se o TensorFlow pinado
-# falhar (ex: Python mais novo que o suportado), tenta uma versão mais
-# recente e compatível no lugar.
+# Tenta primeiro com as versões originais (pinadas pelo próprio MuseTalk).
+# Se falhar (comum quando o Python do Pod é mais novo que o testado pelo
+# MuseTalk -- ex: numpy==1.23.5 e tensorflow==2.12.0 não têm wheel para
+# Python 3.12+), tenta de novo sem nenhuma versão fixada, deixando o pip
+# escolher versões compatíveis com este Python automaticamente.
 if ! pip3 install -r requirements.txt; then
-  echo "Falhou com as versões originais -- tentando com TensorFlow mais recente..."
-  grep -v "^tensorflow==" requirements.txt | grep -v "^tensorboard==" > /tmp/requirements-patched.txt
-  echo "tensorflow>=2.13,<2.20" >> /tmp/requirements-patched.txt
-  echo "tensorboard>=2.13,<2.20" >> /tmp/requirements-patched.txt
+  echo "Falhou com as versões originais -- tentando sem versões fixadas..."
+  sed -E 's/==[0-9][A-Za-z0-9.\-]*//' requirements.txt > /tmp/requirements-patched.txt
   pip3 install -r /tmp/requirements-patched.txt
 fi
 
