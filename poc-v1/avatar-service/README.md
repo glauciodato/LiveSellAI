@@ -103,6 +103,28 @@ az storage blob generate-sas --account-name livesellaipoc4821 --account-key $ACC
 5. **Não esqueça de parar/deletar o Pod depois do teste** — ele continua
    cobrando enquanto estiver rodando, mesmo sem estar processando nada.
 
+## Opção C: Runstack (ou qualquer provedor sem imagem customizada)
+
+A Runstack (runstack.com.br) só oferece templates prontos (JupyterLab, VS
+Code Server, etc.) — não dá pra rodar nossa imagem Docker lá. Nesses casos,
+use o script `setup-manual.sh` deste diretório, que instala manualmente
+(no ambiente já criado pelo template) tudo que o `Dockerfile` faz:
+
+1. Crie um Pod usando o template **"VS Code Server"** (dá acesso a um
+   terminal com GPU, direto no navegador)
+2. No terminal, rode:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/glauciodato/LiveSellAI/main/poc-v1/avatar-service/setup-manual.sh | bash
+   ```
+   (ou baixe o arquivo e rode `bash setup-manual.sh`)
+3. Ao terminar, o script mostra o comando exato para testar (mesmo formato
+   do modo CLI usado no Vast.ai — ver Opção A)
+4. **Pare/delete o Pod depois do teste** — a Runstack cobra por hora rodada,
+   contínuo, sem modo "serverless" (ver observação de custo no `BACKLOG.md`)
+
+> Essa via é mais lenta (reinstala tudo do zero a cada Pod novo, em vez de
+> usar uma imagem já pronta) — prefira a Opção A (Vast.ai) quando possível.
+
 ## Opção B: RunPod Serverless (produção, quando o pagamento for resolvido)
 
 Se o problema de pagamento internacional do RunPod for resolvido no futuro,
