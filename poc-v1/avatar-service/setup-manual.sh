@@ -17,8 +17,18 @@ set -e
 # Distros Debian/Ubuntu recentes (Python 3.11+) bloqueiam "pip install" fora
 # de um venv (PEP 668 -- "externally-managed-environment"). Como este é um
 # Pod descartável só para este teste, contornamos isso globalmente em vez
-# de montar um venv (que complicaria os passos seguintes do MuseTalk).
-export PIP_BREAK_SYSTEM_PACKAGES=1
+# de montar um venv (que complicaria os passos seguintes do MuseTalk). O
+# pip deste Pod não respeita a variável de ambiente PIP_BREAK_SYSTEM_PACKAGES
+# -- por isso injetamos a flag --break-system-packages logo após "install"
+# em toda chamada de pip3 (a flag só é aceita nessa posição, não antes).
+pip3() {
+  if [ "$1" = "install" ]; then
+    shift
+    command pip3 install --break-system-packages "$@"
+  else
+    command pip3 "$@"
+  fi
+}
 
 echo "=== Ambiente ==="
 python3 --version
@@ -57,8 +67,7 @@ fi
 
 echo ""
 echo "=== Instalando mmengine/mmcv/mmdet/mmpose ==="
-pip3 install -U openmim
-mim install mmengine
+pip3 install mmengine
 pip3 install --no-build-isolation "mmcv==2.0.1"
 pip3 install --no-build-isolation "mmdet==3.1.0"
 pip3 install cython numpy
