@@ -55,13 +55,23 @@ fi
 cd ~/musetalk
 
 echo ""
-echo "=== Instalando PyTorch 2.0.1 (cu118) ==="
-pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 \
-  --index-url https://download.pytorch.org/whl/cu118
-
-echo ""
 echo "=== Instalando requirements.txt do MuseTalk ==="
 pip install -r requirements.txt
+
+echo ""
+echo "=== Instalando F5-TTS, Whisper e utilitários do handler ==="
+pip install f5-tts openai-whisper requests pyyaml
+
+echo ""
+echo "=== Instalando/fixando PyTorch 2.0.1 (cu118) ==="
+# Importante: isso roda DEPOIS do F5-TTS/Whisper de propósito -- essas
+# libs podem puxar (via suas próprias dependências) uma versão diferente
+# de torch. Reinstalamos a versão exata aqui, e só ENTÃO compilamos o
+# mmcv logo abaixo, contra essa versão final -- senão o mmcv fica com uma
+# extensão C++ compilada contra um torch que já não é mais o instalado
+# (erro "undefined symbol" ao importar).
+pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 \
+  --index-url https://download.pytorch.org/whl/cu118
 
 echo ""
 echo "=== Instalando mmengine/mmcv/mmdet/mmpose ==="
@@ -76,10 +86,6 @@ CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmcv==2.0.1"
 CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmdet==3.1.0"
 pip install cython numpy
 CUDA_VISIBLE_DEVICES="" pip install --no-build-isolation "mmpose==1.1.0"
-
-echo ""
-echo "=== Instalando F5-TTS, Whisper e utilitários do handler ==="
-pip install f5-tts openai-whisper requests pyyaml
 
 echo ""
 echo "=== Baixando handler.py do repositório do projeto ==="
