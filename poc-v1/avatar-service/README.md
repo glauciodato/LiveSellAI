@@ -118,7 +118,15 @@ use o script `setup-manual.sh` deste diretório, que instala manualmente
    ```
    (ou baixe o arquivo e rode `bash setup-manual.sh`)
 3. Ao terminar, o script mostra o comando exato para testar (mesmo formato
-   do modo CLI usado no Vast.ai — ver Opção A)
+   do modo CLI usado no Vast.ai — ver Opção A). O script instala um Python
+   3.10 dedicado num venv (`~/musetalk-venv`) — em Pods novos, o Python do
+   sistema costuma ser 3.12+, mais novo do que o MuseTalk foi testado, o que
+   causa uma cascata de incompatibilidades (numpy/torch sem build para essa
+   versão, bugs de compilação C++ com PyTorch muito recente). Se abrir um
+   terminal novo depois, ative o venv antes de testar de novo:
+   ```bash
+   source ~/musetalk-venv/bin/activate
+   ```
 4. **Pare/delete o Pod depois do teste** — a Runstack cobra por hora rodada,
    contínuo, sem modo "serverless" (ver observação de custo no `BACKLOG.md`)
 
