@@ -110,7 +110,17 @@ cp livesellai/poc-v1/avatar-service/handler.py ~/musetalk/handler.py
 echo ""
 echo "=== Baixando os pesos do MuseTalk (pode demorar, são vários GB) ==="
 cd ~/musetalk
-sh ./download_weights.sh
+pip install -U "huggingface_hub[cli]"
+sh ./download_weights.sh || true
+
+# O download_weights.sh usa comandos depreciados (huggingface-cli, gdown
+# --id) que podem falhar silenciosamente para arquivos específicos sem
+# derrubar o script inteiro. Confere e baixa de novo, de forma mais
+# robusta, o que estiver faltando.
+if [ ! -f "models/dwpose/dw-ll_ucoco_384.pth" ]; then
+  echo "dw-ll_ucoco_384.pth ausente -- baixando via 'hf download'..."
+  hf download yzd-v/DWPose --local-dir models/dwpose --include "dw-ll_ucoco_384.pth"
+fi
 
 echo ""
 echo "✅ Tudo pronto! Para testar, rode:"
