@@ -223,15 +223,22 @@ def _synthesize_speech(ref_audio: str, ref_text: str, gen_text: str, out_dir: st
     return output_path
 
 
-def _fix_torch_mmcv_abi_mismatch() -> None:
+def _fix_musetalk_runtime_environment() -> None:
     """
-    A instalação do F5-TTS no Dockerfile (pip install sem pin de versão)
-    acaba puxando um PyTorch mais novo como dependência transitiva --
-    quebrando compatibilidade binária com o mmcv (fixado em torch==2.0.1
-    na build da imagem). Sintoma: "undefined symbol" ao importar mmcv/mmdet
-    dentro do processo do MuseTalk. Corrige reinstalando a combinação que
-    sabemos que funciona junto, logo antes de chamar o MuseTalk (o F5-TTS
-    já rodou e terminou antes disso, então não tem problema).
+    Corrige o ambiente Python logo antes de chamar o MuseTalk (o F5-TTS já
+    rodou e terminou antes disso, então essas mudanças não afetam ele):
+
+    1. A instalação do F5-TTS no Dockerfile (pip install sem pin de versão)
+       acaba puxando um PyTorch mais novo como dependência transitiva --
+       quebrando compatibilidade binária com o mmcv (fixado em torch==2.0.1
+       na build da imagem). Sintoma: "undefined symbol" ao importar
+       mmcv/mmdet. Corrige reinstalando a combinação que sabemos que
+       funciona junto.
+    2. O "bitsandbytes" (dependência opcional do mmengine, só usado se
+       alguém quiser otimizadores de 8-bit -- não é o nosso caso) quebra ao
+       importar com torch==2.0.1 (usa uma API que só existe em versões bem
+       mais novas do torch). Mesmo fix que já tínhamos aplicado manualmente
+       no setup do Runstack: remover, já que é opcional.
     """
     subprocess.run(
         [
@@ -241,10 +248,11 @@ def _fix_torch_mmcv_abi_mismatch() -> None:
         ],
         check=True,
     )
+    subprocess.run(["pip", "uninstall", "-y", "bitsandbytes"], check=False)
 
 
 def _run_musetalk(video_path: str, audio_path: str, job_id: str) -> str:
-    _fix_torch_mmcv_abi_mismatch()
+    _fix_musetalk_runtime_environment()
 
     result_dir = os.path.join("/tmp", "musetalk_results", job_id)
     os.makedirs(result_dir, exist_ok=True)
