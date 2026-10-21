@@ -4,7 +4,7 @@
 
 resource "aws_security_group" "gpu_instance" {
   name        = "${var.project_name}-gpu-instance-${var.environment}"
-  description = "Acesso restrito à instância GPU de dev (SSH + API do avatar-service, só do IP liberado)"
+  description = "Acesso restrito a instancia GPU de dev (SSH + API do avatar-service, so do IP liberado)" # AWS so aceita ASCII nesse campo
   vpc_id      = aws_vpc.main.id
 
   tags = {
@@ -14,7 +14,7 @@ resource "aws_security_group" "gpu_instance" {
 
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   security_group_id = aws_security_group.gpu_instance.id
-  description       = "SSH, só do IP do desenvolvedor"
+  description       = "SSH, so do IP do desenvolvedor"
   cidr_ipv4         = var.allowed_ssh_cidr
   from_port         = 22
   to_port           = 22
@@ -23,7 +23,7 @@ resource "aws_vpc_security_group_ingress_rule" "ssh" {
 
 resource "aws_vpc_security_group_ingress_rule" "avatar_service_api" {
   security_group_id = aws_security_group.gpu_instance.id
-  description       = "API do avatar-service (teste manual), só do IP do desenvolvedor"
+  description       = "API do avatar-service (teste manual), so do IP do desenvolvedor"
   cidr_ipv4         = var.allowed_ssh_cidr
   from_port         = 8000
   to_port           = 8000
@@ -32,7 +32,7 @@ resource "aws_vpc_security_group_ingress_rule" "avatar_service_api" {
 
 resource "aws_vpc_security_group_egress_rule" "all_outbound" {
   security_group_id = aws_security_group.gpu_instance.id
-  description       = "Todo tráfego de saída liberado (download de modelos/imagens Docker)"
+  description       = "Todo trafego de saida liberado (download de modelos/imagens Docker)"
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
