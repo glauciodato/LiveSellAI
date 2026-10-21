@@ -12,7 +12,7 @@ terraform {
   # arquivo de state no Git. Troque "organization" pelo nome da sua
   # organização assim que criar a conta (ver README.md, passo 1).
   cloud {
-    organization = "SUBSTITUA_PELO_NOME_DA_SUA_ORGANIZACAO_NO_TERRAFORM_CLOUD"
+    organization = "Sellai-Live"
 
     workspaces {
       name = "livesellai-infra-aws-dev"
