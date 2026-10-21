@@ -15,7 +15,8 @@
         "sns:Get*",
         "sns:List*",
         "budgets:View*",
-        "budgets:Describe*"
+        "budgets:Describe*",
+        "budgets:List*"
       ],
       "Resource": "*"
     },
