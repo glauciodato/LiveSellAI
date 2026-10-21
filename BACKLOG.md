@@ -1,5 +1,22 @@
 # Backlog
 
+## [PENDENTE] Rodar o avatar-service de verdade na instância EC2 (AWS)
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** gerar um avatar de verdade usando a GPU provisionada na AWS, via o `avatar-service` já publicado no GHCR
+**Para que** eu confirme que a infraestrutura própria (sem GPU alugada manualmente) funciona de ponta a ponta
+
+**Critérios de aceitação:**
+- [ ] Imagem Docker `avatar-service` roda com sucesso na instância EC2 (`docker run --gpus all`)
+- [ ] Job de geração de avatar completa com sucesso (sem erro), usando um vídeo real já enviado
+- [ ] Vídeo do avatar gerado aparece no Blob Storage e é possível assistir
+
+**Bug encontrado e corrigido durante o teste:** o `download_weights.sh` original do MuseTalk (script de terceiros, clonado do repositório oficial) tinha 3 problemas que faziam ele falhar silenciosamente (sem nunca baixar nenhum peso de verdade, mas imprimindo "sucesso" mesmo assim): `pip install -U huggingface_hub[cli]` não funciona mais nas versões recentes (não expõe mais esse CLI) e ainda quebra a versão `<2.0` exigida por transformers/gradio/datasets (derrubando o F5-TTS); `gdown --id` usa sintaxe removida; `curl` não está instalado na imagem. Reescrito em `handler.py` pra baixar os pesos direto via API Python (`huggingface_hub.hf_hub_download`, `gdown.download`), sem depender de nenhuma CLI de terceiros.
+
+**Data:** 21/10/2026
+
+---
+
 ## [CONCLUÍDO] Hardening de segurança do ambiente de dev na AWS
 
 **Como** responsável pelo produto LiveSellAI

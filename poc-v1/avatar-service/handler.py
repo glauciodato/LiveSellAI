@@ -96,11 +96,54 @@ def _ensure_musetalk_weights() -> None:
         return
 
     print("[avatar-service] Baixando pesos do MuseTalk (primeira execução)...")
+
+    # NÃO usamos mais o download_weights.sh original do MuseTalk -- ele tem
+    # três bugs reais, confirmados rodando de verdade: (1) "pip install -U
+    # huggingface_hub[cli]" não funciona mais (versões recentes não expõem
+    # esse CLI por esse extra) e ainda quebra a versão <2.0 que
+    # transformers/gradio/datasets exigem, derrubando o F5-TTS; (2) usa
+    # "gdown --id", sintaxe removida em versões recentes do gdown; (3) usa
+    # "curl", que nem está instalado na imagem base. O resultado: nenhum
+    # peso era baixado de verdade, mas o script imprimia "sucesso" mesmo
+    # assim (sem "set -e"). Baixamos tudo direto via API Python em vez de
+    # depender de nenhuma dessas CLIs.
     subprocess.run(
-        ["sh", "./download_weights.sh"],
-        cwd=MUSETALK_DIR,
+        ["pip", "install", "--no-deps", "huggingface_hub==1.31.0", "gdown"],
         check=True,
     )
+
+    from huggingface_hub import hf_hub_download
+    import gdown
+
+    def _hf(repo_id: str, filename: str, local_dir: str) -> None:
+        os.makedirs(local_dir, exist_ok=True)
+        hf_hub_download(repo_id=repo_id, filename=filename, local_dir=local_dir)
+
+    _hf("TMElyralab/MuseTalk", "musetalk/musetalk.json", models_dir)
+    _hf("TMElyralab/MuseTalk", "musetalk/pytorch_model.bin", models_dir)
+    _hf("TMElyralab/MuseTalk", "musetalkV15/musetalk.json", models_dir)
+    _hf("TMElyralab/MuseTalk", "musetalkV15/unet.pth", models_dir)
+    _hf("stabilityai/sd-vae-ft-mse", "config.json", os.path.join(models_dir, "sd-vae"))
+    _hf("stabilityai/sd-vae-ft-mse", "diffusion_pytorch_model.bin", os.path.join(models_dir, "sd-vae"))
+    _hf("openai/whisper-tiny", "config.json", os.path.join(models_dir, "whisper"))
+    _hf("openai/whisper-tiny", "pytorch_model.bin", os.path.join(models_dir, "whisper"))
+    _hf("openai/whisper-tiny", "preprocessor_config.json", os.path.join(models_dir, "whisper"))
+    _hf("yzd-v/DWPose", "dw-ll_ucoco_384.pth", os.path.join(models_dir, "dwpose"))
+    _hf("ByteDance/LatentSync", "latentsync_syncnet.pt", os.path.join(models_dir, "syncnet"))
+
+    face_parse_dir = os.path.join(models_dir, "face-parse-bisent")
+    os.makedirs(face_parse_dir, exist_ok=True)
+    gdown.download(
+        id="154JgKpzCPW82qINcVieuPH3fZ2e0P812",
+        output=os.path.join(face_parse_dir, "79999_iter.pth"),
+        quiet=False,
+    )
+    _download_file(
+        "https://download.pytorch.org/models/resnet18-5c106cde.pth",
+        os.path.join(face_parse_dir, "resnet18-5c106cde.pth"),
+    )
+
+    print("[avatar-service] Pesos do MuseTalk baixados com sucesso.")
 
 
 # ---------------------------------------------------------------------------
