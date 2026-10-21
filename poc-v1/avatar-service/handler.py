@@ -223,7 +223,29 @@ def _synthesize_speech(ref_audio: str, ref_text: str, gen_text: str, out_dir: st
     return output_path
 
 
+def _fix_torch_mmcv_abi_mismatch() -> None:
+    """
+    A instalação do F5-TTS no Dockerfile (pip install sem pin de versão)
+    acaba puxando um PyTorch mais novo como dependência transitiva --
+    quebrando compatibilidade binária com o mmcv (fixado em torch==2.0.1
+    na build da imagem). Sintoma: "undefined symbol" ao importar mmcv/mmdet
+    dentro do processo do MuseTalk. Corrige reinstalando a combinação que
+    sabemos que funciona junto, logo antes de chamar o MuseTalk (o F5-TTS
+    já rodou e terminou antes disso, então não tem problema).
+    """
+    subprocess.run(
+        [
+            "pip", "install", "--no-deps", "--force-reinstall",
+            "torch==2.0.1", "torchvision==0.15.2", "torchaudio==2.0.2",
+            "--index-url", "https://download.pytorch.org/whl/cu118",
+        ],
+        check=True,
+    )
+
+
 def _run_musetalk(video_path: str, audio_path: str, job_id: str) -> str:
+    _fix_torch_mmcv_abi_mismatch()
+
     result_dir = os.path.join("/tmp", "musetalk_results", job_id)
     os.makedirs(result_dir, exist_ok=True)
 
