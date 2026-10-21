@@ -1,15 +1,15 @@
 # Backlog
 
-## [PENDENTE] Rodar o avatar-service de verdade na instância EC2 (AWS)
+## [CONCLUÍDO] Rodar o avatar-service de verdade na instância EC2 (AWS)
 
 **Como** desenvolvedor do LiveSellAI
 **Eu quero** gerar um avatar de verdade usando a GPU provisionada na AWS, via o `avatar-service` já publicado no GHCR
 **Para que** eu confirme que a infraestrutura própria (sem GPU alugada manualmente) funciona de ponta a ponta
 
 **Critérios de aceitação:**
-- [ ] Imagem Docker `avatar-service` roda com sucesso na instância EC2 (`docker run --gpus all`)
-- [ ] Job de geração de avatar completa com sucesso (sem erro), usando um vídeo real já enviado
-- [ ] Vídeo do avatar gerado aparece no Blob Storage e é possível assistir
+- [x] Imagem Docker `avatar-service` roda com sucesso na instância EC2 (`docker run --gpus all`)
+- [x] Job de geração de avatar completa com sucesso (sem erro), usando um vídeo real já enviado — `{"status": "completed", "blobUrl": "..."}`
+- [x] Vídeo do avatar gerado aparece no Blob Storage e é possível assistir — confirmado: `avatars/glauciomartins2_at_gmail.com/1792560637940-avatar-aws-test.mp4`, 1.09 MB, `video/mp4` válido
 
 **Bugs encontrados e corrigidos durante o teste (nessa ordem, cada um só apareceu depois que o anterior foi corrigido):**
 1. O `download_weights.sh` original do MuseTalk (script de terceiros, clonado do repositório oficial) tinha 3 problemas que faziam ele falhar silenciosamente (sem nunca baixar nenhum peso de verdade, mas imprimindo "sucesso" mesmo assim): `pip install -U huggingface_hub[cli]` não funciona mais nas versões recentes (não expõe mais esse CLI) e ainda quebra a versão `<2.0` exigida por transformers/gradio/datasets (derrubando o F5-TTS); `gdown --id` usa sintaxe removida; `curl` não está instalado na imagem. Reescrito em `handler.py` pra baixar os pesos direto via API Python (`huggingface_hub.hf_hub_download`, `gdown.download`), sem depender de nenhuma CLI de terceiros.
@@ -19,7 +19,11 @@
 5. O `tokenizers` instalado (puxado de carona, sem pin, por uma versão mais nova do transformers que já passou pelo ambiente) ficou incompatível com `transformers==4.39.2` (exige `tokenizers<0.19`, estava em `0.23.3`) — como o fix anterior usa `--no-deps`, o tokenizers não foi rebaixado junto. Corrigido fixando `tokenizers==0.15.2` na mesma chamada de pip.
 6. Conflito com o **nosso próprio** fix #1: `huggingface_hub==1.31.0` (fixado pra resolver o download de pesos) é incompatível com `transformers==4.39.2`, que exige `huggingface_hub<1.0`. Como o download de pesos já terminou antes dessa etapa rodar, é seguro rebaixar — corrigido fixando `huggingface_hub==0.23.2` junto com transformers/tokenizers.
 
-**Nota operacional:** cada rebuild da imagem acumula bastante espaço em disco na instância (imagens antigas + camadas não reaproveitadas entre versões diferentes de torch/transformers) — já precisamos rodar `docker system prune -a -f --volumes` duas vezes durante esses testes pra não ficar sem espaço. Rodar isso preventivamente antes de cada novo `docker pull` enquanto estivermos iterando.
+**Nota operacional:** cada rebuild da imagem acumula bastante espaço em disco na instância (imagens antigas + camadas não reaproveitadas entre versões diferentes de torch/transformers) — já precisamos rodar `docker system prune -a -f --volumes` várias vezes durante esses testes pra não ficar sem espaço. Rodar isso preventivamente antes de cada novo `docker pull` enquanto estivermos iterando.
+
+**Resultado final:** depois de 6 bugs corrigidos em cadeia (todos de incompatibilidade de versão entre dependências instaladas sem pin no Dockerfile), o 7º job completou com sucesso — primeira geração de avatar de ponta a ponta na infraestrutura própria da AWS, confirmando que o pipeline (MuseTalk + F5-TTS) funciona com a GPU `g4dn.xlarge`.
+
+**Próximos passos naturais (não feitos ainda):** (1) consertar os 6 bugs direto no `Dockerfile` (fixando as versões na build da imagem, em vez de corrigir em runtime no `handler.py`) pra evitar o custo de reinstalar ~2.3GB de PyTorch a cada job; (2) usar um volume Docker persistente pros pesos do MuseTalk, evitando rebaixar tudo a cada cold start; (3) revisar a qualidade do resultado gerado (o vídeo de teste ainda não foi assistido/avaliado).
 
 **Data:** 21/10/2026
 
