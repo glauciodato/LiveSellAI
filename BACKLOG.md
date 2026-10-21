@@ -1,20 +1,24 @@
 # Backlog
 
-## [PENDENTE] Provisionar ambiente de dev na AWS via Terraform (VPC segura + EC2 com GPU)
+## [CONCLUÍDO] Provisionar ambiente de dev na AWS via Terraform (VPC segura + EC2 com GPU)
 
 **Como** desenvolvedor do LiveSellAI
 **Eu quero** infraestrutura como código (Terraform, com estado sincronizado no Terraform Cloud) provisionando uma VPC segura e uma instância EC2 com GPU
 **Para que** eu tenha um ambiente de desenvolvimento estável e versionado pra rodar o avatar-service (MuseTalk + F5-TTS), sem depender mais de GPU alugada manualmente (Runstack) ou de cota aprovada mas nunca usada
 
 **Critérios de aceitação:**
-- [ ] Pasta `infra-aws-dev/` com código Terraform organizado (VPC, subnet, security group, instância EC2 GPU)
-- [ ] Backend remoto configurado no Terraform Cloud (estado compartilhado e versionado, fora do Git)
-- [ ] VPC com acesso restrito por padrão (SSH só liberado pro IP do desenvolvedor — nunca `0.0.0.0/0`)
-- [ ] Instância EC2 usa uma AMI com driver de GPU/CUDA e Docker já prontos (AWS Deep Learning AMI), tipo `g4dn.xlarge` (GPU T4, já validado no pipeline MuseTalk + F5-TTS nessa sessão)
-- [ ] `terraform plan`/`apply` executado com sucesso contra a conta AWS real, instância provisionada e acessível via SSH
-- [ ] Documentado no README: como criar conta/organização no Terraform Cloud, autenticar, e rodar
+- [x] Pasta `infra-aws-dev/` com código Terraform organizado (VPC, subnet, security group, instância EC2 GPU)
+- [x] Backend remoto configurado no Terraform Cloud (estado compartilhado e versionado, fora do Git) — organização `Sellai-Live`, workspace `livesellai-infra-aws-dev`
+- [x] VPC com acesso restrito por padrão (SSH só liberado pro IP do desenvolvedor — nunca `0.0.0.0/0`)
+- [x] Instância EC2 usa uma AMI com driver de GPU/CUDA e Docker já prontos (AWS Deep Learning AMI), tipo `g4dn.xlarge` (GPU T4, já validado no pipeline MuseTalk + F5-TTS nessa sessão)
+- [x] `terraform plan`/`apply` executado com sucesso contra a conta AWS real, instância provisionada (`g4dn.xlarge`, região `us-east-1`) e acessível via SSH — GPU Tesla T4 (16GB VRAM) e Docker confirmados via SSH
+- [x] Documentado no README: como criar conta/organização no Terraform Cloud, autenticar, e rodar
 
 **Observação:** autenticação da AWS no Terraform Cloud começa com Access Key/Secret Key como variável sensível do workspace (mais rápido de validar agora); endurecer depois pra Dynamic Credentials (OIDC, sem chave de longa duração) é um passo seguinte — mesmo padrão que já usamos no GitHub Actions → Azure.
+
+**Ajustes feitos durante a implementação:**
+- O campo `description` de Security Group da AWS só aceita ASCII — tivemos que remover acentos.
+- O par de chaves EC2 criado manualmente no console (`gpu-keypair`) teve o `.pem` perdido antes de ser usado — trocamos pra gerar o par de chaves via Terraform (`key_pair.tf`, provider `tls`), com a chave privada disponível como output sensível (`terraform output -raw private_key_pem`), evitando depender de download manual.
 
 **Data:** 20/10/2026
 

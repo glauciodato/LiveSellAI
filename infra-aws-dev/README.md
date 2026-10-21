@@ -35,11 +35,22 @@ terraform login
 Isso abre o navegador, pede confirmação, e gera um token salvo localmente em
 `~/.terraform.d/credentials.tfrc.json` (não precisa colar nada manualmente).
 
-## Passo 3 — Criar um par de chaves EC2 na AWS (se ainda não tiver um)
+## Passo 3 — Chave SSH (gerada automaticamente pelo Terraform)
 
-Via console da AWS: EC2 → "Key Pairs" → "Create key pair" → baixa o
-`.pem` → guarda em local seguro (ex: `~/.ssh/livesellai-dev.pem`) e dá
-`chmod 400` nele. Anote o **nome** do key pair (vai usar no `terraform.tfvars`).
+Não precisa criar um key pair manualmente no console da AWS — o próprio
+Terraform gera o par de chaves (`key_pair.tf`, provider `tls`) e expõe a
+chave privada como output sensível. Depois do `apply` (passo 6), salve a
+chave assim:
+
+```bash
+terraform output -raw private_key_pem > livesellai-dev.pem
+chmod 400 livesellai-dev.pem
+```
+
+(Já tentamos usar um key pair pré-existente e perdemos o `.pem` — gerar
+pelo Terraform evita repetir isso: se perder a chave de novo, é só rodar
+o comando acima de novo a qualquer momento, o Terraform Cloud guarda o
+valor no state.)
 
 ## Passo 4 — Dar à AWS as credenciais que o Terraform Cloud vai usar
 
@@ -76,7 +87,6 @@ cp terraform.tfvars.example terraform.tfvars
 Edite `terraform.tfvars`:
 - `allowed_ssh_cidr`: seu IP público + `/32` (descubra em
   [whatismyip.com](https://www.whatismyip.com/))
-- `key_pair_name`: o nome do key pair criado no passo 3
 - `aws_region`: confirme que é a mesma região onde sua cota de GPU foi
   aprovada (ver caso de suporte da AWS)
 
@@ -90,16 +100,17 @@ terraform plan    # mostra o que vai ser criado, roda remotamente no Terraform C
 terraform apply   # cria de verdade (pede confirmação)
 ```
 
-Ao final, o `terraform output` mostra o IP público e o comando SSH pronto:
+Ao final, salve a chave privada (ver Passo 3) e confira o IP/comando SSH:
 
 ```bash
+terraform output instance_public_ip
 terraform output ssh_command
 ```
 
 ## Depois de provisionado
 
 ```bash
-ssh -i ~/.ssh/livesellai-dev.pem ubuntu@<ip-público>
+ssh -i livesellai-dev.pem ubuntu@<ip-público>
 
 # Confere se a GPU está visível
 nvidia-smi

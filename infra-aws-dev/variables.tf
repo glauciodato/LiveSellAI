@@ -50,11 +50,6 @@ variable "instance_type" {
   default     = "g4dn.xlarge"
 }
 
-variable "key_pair_name" {
-  description = "Nome de um par de chaves EC2 já existente na sua conta AWS (região escolhida), usado pro acesso SSH."
-  type        = string
-}
-
 variable "root_volume_size_gb" {
   description = "Tamanho do disco raiz em GB — os modelos de IA (MuseTalk, F5-TTS, Whisper) ocupam bastante espaço."
   type        = number

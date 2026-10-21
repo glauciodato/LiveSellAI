@@ -9,8 +9,14 @@ output "instance_public_ip" {
 }
 
 output "ssh_command" {
-  description = "Comando pronto pra conectar via SSH."
-  value       = "ssh -i ${var.key_pair_name}.pem ubuntu@${aws_instance.avatar_gpu_dev.public_ip}"
+  description = "Comando pronto pra conectar via SSH (depois de salvar a chave privada — ver output private_key_pem)."
+  value       = "ssh -i livesellai-dev.pem ubuntu@${aws_instance.avatar_gpu_dev.public_ip}"
+}
+
+output "private_key_pem" {
+  description = "Chave privada SSH gerada pelo Terraform. Salve com: terraform output -raw private_key_pem > livesellai-dev.pem && chmod 400 livesellai-dev.pem"
+  value       = tls_private_key.ssh.private_key_pem
+  sensitive   = true
 }
 
 output "ami_used" {
