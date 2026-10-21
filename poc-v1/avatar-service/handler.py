@@ -250,6 +250,11 @@ def _fix_musetalk_runtime_environment() -> None:
        incompatível com transformers==4.39.2, que exige tokenizers<0.19.
        Como o passo acima usa --no-deps, o tokenizers não é rebaixado
        junto -- precisa fixar explicitamente também.
+    5. O "huggingface_hub" foi fixado em 1.31.0 lá em cima (função
+       _ensure_musetalk_weights, pra resolver o download dos pesos) --
+       mas transformers==4.39.2 exige huggingface_hub<1.0. Como o download
+       de pesos já terminou antes dessa função rodar, é seguro rebaixar
+       aqui também.
     """
     subprocess.run(
         [
@@ -262,7 +267,7 @@ def _fix_musetalk_runtime_environment() -> None:
     subprocess.run(
         [
             "pip", "install", "--no-deps", "--force-reinstall",
-            "transformers==4.39.2", "tokenizers==0.15.2",
+            "transformers==4.39.2", "tokenizers==0.15.2", "huggingface_hub==0.23.2",
         ],
         check=True,
     )
