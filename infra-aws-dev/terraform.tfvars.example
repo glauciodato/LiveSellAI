@@ -1,0 +1,7 @@
+# Copie este arquivo para terraform.tfvars e preencha com seus valores.
+# terraform.tfvars é gitignored — nunca commite ele (pode conter seu IP, o
+# que já é informação sensível o suficiente pra não ir pro Git público).
+
+aws_region        = "us-east-1" # mesma região onde a cota de GPU foi aprovada
+allowed_ssh_cidr  = "SEU_IP_PUBLICO/32" # ex: "203.0.113.42/32" — descubra o seu em https://whatismyip.com
+key_pair_name     = "nome-do-seu-key-pair-na-aws"
