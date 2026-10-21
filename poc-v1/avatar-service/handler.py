@@ -245,6 +245,11 @@ def _fix_musetalk_runtime_environment() -> None:
        importado indiretamente pelo mmdet. Repinando pra transformers==4.39.2
        -- a mesma combinação (torch 2.0.1 + mmcv 2.0.1 + transformers
        4.39.2) já validada manualmente no setup do Runstack.
+    4. O "tokenizers" instalado (puxado de carona, sem pin, por alguma
+       versão mais nova do transformers que passou por aqui antes) fica
+       incompatível com transformers==4.39.2, que exige tokenizers<0.19.
+       Como o passo acima usa --no-deps, o tokenizers não é rebaixado
+       junto -- precisa fixar explicitamente também.
     """
     subprocess.run(
         [
@@ -255,7 +260,10 @@ def _fix_musetalk_runtime_environment() -> None:
         check=True,
     )
     subprocess.run(
-        ["pip", "install", "--no-deps", "--force-reinstall", "transformers==4.39.2"],
+        [
+            "pip", "install", "--no-deps", "--force-reinstall",
+            "transformers==4.39.2", "tokenizers==0.15.2",
+        ],
         check=True,
     )
     subprocess.run(["pip", "uninstall", "-y", "bitsandbytes"], check=False)
