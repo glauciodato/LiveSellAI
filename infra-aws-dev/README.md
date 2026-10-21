@@ -18,6 +18,16 @@ manualmente (Runstack) como fizemos antes.
   (já vem com driver NVIDIA, CUDA e Docker com suporte a GPU configurados —
   evita repetir os patches manuais que tivemos no Runstack)
 
+**Hardening de segurança aplicado:**
+- IMDSv2 obrigatório (mitiga roubo de credenciais via SSRF)
+- Disco (EBS) criptografado em repouso
+- Autenticação por senha desativada no SSH (só chave)
+- Atualizações de segurança automáticas do SO (`unattended-upgrades`)
+- Alarmes de CPU/GPU com uso sustentado anômalo (CloudWatch + e-mail via SNS)
+- Alerta de orçamento mensal (80%/100% do limite, também por e-mail)
+- Usuário IAM do Terraform Cloud com permissão mínima (não mais
+  `AmazonEC2FullAccess` — ver `iam-policy-terraform-runner.json`)
+
 ## Passo 1 — Criar conta no Terraform Cloud
 
 1. Acesse [app.terraform.io/signup](https://app.terraform.io/signup) e crie
@@ -68,15 +78,18 @@ como variáveis do workspace (não aqui no código):
    - `AWS_ACCESS_KEY_ID`
    - `AWS_SECRET_ACCESS_KEY`
 
-   (de um usuário/role IAM com permissão de criar VPC, EC2, security group —
-   pra uma conta de dev, `AmazonEC2FullReadOnlyAccess` não basta, precisa de
-   permissão de escrita em EC2/VPC)
+No console da AWS (IAM → Users → seu usuário, ex: `terraform-cloud-dev`):
+remova a policy `AmazonEC2FullAccess` e anexe uma policy nova (JSON), colando
+o conteúdo de **`iam-policy-terraform-runner.json`** deste diretório — ela dá
+só o necessário (VPC/EC2/key pair, a role IAM específica da instância,
+CloudWatch/SNS/Budgets), nada de acesso amplo à conta.
 
-> **Nota de segurança:** isso usa uma chave de acesso de longa duração —
-> aceitável pra validar agora, mas o ideal depois é trocar por **Dynamic
-> Credentials** (OIDC, sem chave fixa), o mesmo padrão que já usamos no
-> GitHub Actions → Azure neste projeto. Fica registrado como próximo passo
-> de endurecimento no `BACKLOG.md`.
+> **Nota de segurança:** isso ainda usa uma chave de acesso de longa
+> duração — aceitável pra validar agora (e já bem mais restrita que antes),
+> mas o ideal depois é trocar por **Dynamic Credentials** (OIDC, sem chave
+> fixa), o mesmo padrão que já usamos no GitHub Actions → Azure neste
+> projeto. Fica registrado como próximo passo de endurecimento no
+> `BACKLOG.md`.
 
 ## Passo 5 — Preencher as variáveis
 
@@ -89,6 +102,8 @@ Edite `terraform.tfvars`:
   [whatismyip.com](https://www.whatismyip.com/))
 - `aws_region`: confirme que é a mesma região onde sua cota de GPU foi
   aprovada (ver caso de suporte da AWS)
+- `budget_alert_email`: e-mail que recebe os alertas de orçamento e de
+  uso sustentado anômalo de CPU/GPU
 
 `terraform.tfvars` é gitignored — nunca vai pro commit.
 
@@ -106,6 +121,12 @@ Ao final, salve a chave privada (ver Passo 3) e confira o IP/comando SSH:
 terraform output instance_public_ip
 terraform output ssh_command
 ```
+
+**Importante:** a AWS manda um e-mail de confirmação pro endereço em
+`budget_alert_email` (assunto "AWS Notification - Subscription Confirmation")
+— sem clicar em "Confirm subscription" nesse e-mail, os alertas de CPU/GPU
+sustentado e de orçamento não chegam de verdade. Confira a caixa de entrada
+(e o spam) logo após o primeiro `apply`.
 
 ## Depois de provisionado
 
@@ -130,13 +151,22 @@ uso e recrie (`terraform apply`) quando for testar de novo. Como não
 usamos Elastic IP, o IP público muda a cada recriação (normal, é só
 conferir de novo com `terraform output`).
 
-## Limitações desta primeira fase
+## Limitações desta fase
 
 - Autenticação da AWS no Terraform Cloud via chave de acesso estática
   (ver nota de segurança no Passo 4) — endurecer pra Dynamic Credentials
   depois.
 - Sem Elastic IP — o IP muda a cada `apply`/`destroy`.
-- Bootstrap da instância só confirma que a GPU está visível
+- Bootstrap da instância confirma GPU/Docker e configura o CloudWatch Agent
   (`/var/log/livesellai-bootstrap.log`) — subir o `avatar-service` ainda é
   manual via SSH (ver acima). Automatizar isso (user data completo, ou
   Docker Compose) é um próximo passo natural.
+- Tráfego de saída (egress) continua liberado pra qualquer destino —
+  necessário pra baixar modelos/imagens Docker/pacotes, mas é uma
+  superfície que dá pra restringir mais no futuro (ex: só domínios
+  conhecidos) se o projeto justificar o esforço extra.
+- Os limiares de alerta de CPU/GPU (`cpu_alarm_threshold_percent`,
+  `gpu_alarm_threshold_percent`, ambos 15% por padrão, sustentado por
+  `sustained_usage_hours` = 3 horas) são conservadores pra essa instância
+  especificamente (cargas legítimas são rajadas de segundos) — ajuste se
+  o uso real do projeto mudar.

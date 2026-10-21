@@ -1,5 +1,25 @@
 # Backlog
 
+## [PENDENTE] Hardening de segurança do ambiente de dev na AWS
+
+**Como** responsável pelo produto LiveSellAI
+**Eu quero** garantir que a instância EC2/VPC provisionada esteja protegida contra ataques antes de rodar o projeto de verdade nela
+**Para que** não sofremos comprometimento de conta/dados por uma configuração insegura
+
+**Critérios de aceitação:**
+- [ ] IMDSv2 obrigatório na instância (evita roubo de credenciais via SSRF)
+- [ ] Disco (EBS) criptografado em repouso
+- [ ] Usuário IAM usado pelo Terraform Cloud com permissão mínima necessária (não `AmazonEC2FullAccess`)
+- [ ] Acesso SSH/API continua restrito só ao IP do desenvolvedor (sem exposição a mais ninguém por enquanto)
+- [ ] Alerta de orçamento configurado (detecta custo anômalo rapidamente, sinal indireto de comprometimento)
+- [ ] Documentado no README o que foi endurecido e o que ainda fica como próximo passo
+
+**Observação:** decisão estratégica tomada nessa conversa (20-21/10/2026): o produto vai migrar do Azure pra rodar tudo na AWS — migração maior, tratada em etapas futuras, não faz parte desta história.
+
+**Data:** 21/10/2026
+
+---
+
 ## [CONCLUÍDO] Provisionar ambiente de dev na AWS via Terraform (VPC segura + EC2 com GPU)
 
 **Como** desenvolvedor do LiveSellAI

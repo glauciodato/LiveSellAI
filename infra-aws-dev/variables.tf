@@ -55,3 +55,32 @@ variable "root_volume_size_gb" {
   type        = number
   default     = 150
 }
+
+variable "budget_alert_email" {
+  description = "E-mail que recebe o alerta se o gasto mensal da AWS passar de 80%/100% do limite definido. Gasto anômalo é um sinal indireto comum de comprometimento da conta."
+  type        = string
+}
+
+variable "monthly_budget_limit_usd" {
+  description = "Limite mensal de gasto (USD) pra disparar o alerta de orçamento."
+  type        = number
+  default     = 50
+}
+
+variable "sustained_usage_hours" {
+  description = "Quantas horas seguidas de uso acima do limiar disparam o alerta de CPU/GPU sustentado."
+  type        = number
+  default     = 3
+}
+
+variable "cpu_alarm_threshold_percent" {
+  description = "Limiar de CPU (%) média por hora considerado suspeito se sustentado (jobs legítimos são rajadas curtas de segundos, não horas)."
+  type        = number
+  default     = 15
+}
+
+variable "gpu_alarm_threshold_percent" {
+  description = "Limiar de GPU (%) média por hora considerado suspeito se sustentado."
+  type        = number
+  default     = 15
+}

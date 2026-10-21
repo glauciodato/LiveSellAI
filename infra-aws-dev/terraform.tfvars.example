@@ -2,8 +2,9 @@
 # terraform.tfvars é gitignored — nunca commite ele (pode conter seu IP, o
 # que já é informação sensível o suficiente pra não ir pro Git público).
 
-aws_region       = "us-east-1" # mesma região onde a cota de GPU foi aprovada
-allowed_ssh_cidr = "SEU_IP_PUBLICO/32" # ex: "203.0.113.42/32" — descubra o seu em https://whatismyip.com
+aws_region         = "us-east-1" # mesma região onde a cota de GPU foi aprovada
+allowed_ssh_cidr   = "SEU_IP_PUBLICO/32" # ex: "203.0.113.42/32" — descubra o seu em https://whatismyip.com
+budget_alert_email = "seu-email@exemplo.com" # recebe alerta em 80%/100% do limite mensal
 
 # Não precisa mais de "key_pair_name" — o Terraform gera o par de chaves SSH
 # automaticamente (ver key_pair.tf e o output "private_key_pem").
