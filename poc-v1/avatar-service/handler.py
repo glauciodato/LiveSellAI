@@ -239,6 +239,12 @@ def _fix_musetalk_runtime_environment() -> None:
        importar com torch==2.0.1 (usa uma API que só existe em versões bem
        mais novas do torch). Mesmo fix que já tínhamos aplicado manualmente
        no setup do Runstack: remover, já que é opcional.
+    3. O "transformers" (também puxado sem pin pelo F5-TTS), em versões
+       recentes, exige PyTorch >= 2.6 -- com torch==2.0.1 ele se autodesliga
+       e quebra com um bug próprio (NameError: "nn" não definido) ao ser
+       importado indiretamente pelo mmdet. Repinando pra transformers==4.39.2
+       -- a mesma combinação (torch 2.0.1 + mmcv 2.0.1 + transformers
+       4.39.2) já validada manualmente no setup do Runstack.
     """
     subprocess.run(
         [
@@ -246,6 +252,10 @@ def _fix_musetalk_runtime_environment() -> None:
             "torch==2.0.1", "torchvision==0.15.2", "torchaudio==2.0.2",
             "--index-url", "https://download.pytorch.org/whl/cu118",
         ],
+        check=True,
+    )
+    subprocess.run(
+        ["pip", "install", "--no-deps", "--force-reinstall", "transformers==4.39.2"],
         check=True,
     )
     subprocess.run(["pip", "uninstall", "-y", "bitsandbytes"], check=False)
