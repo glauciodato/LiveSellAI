@@ -115,7 +115,8 @@
         "sns:Subscribe",
         "sns:Unsubscribe",
         "sns:TagResource",
-        "budgets:ModifyBudget"
+        "budgets:ModifyBudget",
+        "budgets:TagResource"
       ],
       "Resource": "*"
     }
