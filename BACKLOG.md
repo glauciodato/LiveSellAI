@@ -1,5 +1,22 @@
 # Backlog
 
+## [PENDENTE] Melhorar qualidade do avatar gerado (boca borrada + voz robotizada)
+
+**Como** responsável pelo produto LiveSellAI
+**Eu quero** melhorar a nitidez da boca (MuseTalk) e a naturalidade da voz em português (F5-TTS)
+**Para que** o avatar gerado fique apresentável o suficiente pra uso real em vendas
+
+**Critérios de aceitação:**
+- [ ] Testar a geração sem `--use_float16` (agora com GPU T4 dedicada de 16GB na AWS, talvez não seja mais necessário economizar VRAM) e comparar nitidez da boca
+- [ ] Investigar o checkpoint da comunidade `traderpedroso/F5-TTS-BRAZILIAN-PORTUGUESE` (identificado na pesquisa inicial, não integrado por falta de documentação/vocabulário) e avaliar se resolve a entonação robotizada
+- [ ] Comparar resultado antes/depois com o vídeo de teste já gerado (21/10, avatar da conta `glauciomartins2@gmail.com`)
+
+**Observação:** confirmado pelo usuário em 22/10/2026 — avatar gerado na AWS funciona de ponta a ponta, mas com boca borrada e voz robotizada em PT-BR. São limitações conhecidas desde a pesquisa inicial de modelos, não bugs novos. Deliberadamente adiado pra depois (usuário escolheu focar em outra prioridade agora).
+
+**Data:** 22/10/2026
+
+---
+
 ## [CONCLUÍDO] Tela de alterar senha
 
 **Como** usuário do LiveSellAI
