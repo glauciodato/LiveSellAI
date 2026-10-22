@@ -1,5 +1,23 @@
 # Backlog
 
+## [CONCLUÍDO] Tela de alterar senha
+
+**Como** usuário do LiveSellAI
+**Eu quero** trocar minha senha dentro do próprio app, informando a senha atual e a nova
+**Para que** eu não dependa de ninguém mexer direto no banco de dados quando esquecer ou quiser trocar a senha
+
+**Critérios de aceitação:**
+- [x] Backend: endpoint `POST /api/change-password` — valida a senha atual (bcrypt), exige a nova com pelo menos 6 caracteres, salva o novo hash
+- [x] App: nova tela "Alterar senha" (senha atual, nova senha, confirmar nova senha), acessível a partir da tela principal
+- [x] Mensagens de erro claras (senha atual errada, nova senha muito curta, senhas não conferem)
+- [x] Testado localmente contra o Postgres real — 6 cenários (senha atual errada, nova senha curta, troca válida, login com senha antiga nega, login com senha nova funciona)
+
+**Observação:** essa tela exige a senha atual, por segurança — não resolve o caso de esquecimento de senha (precisaria de um fluxo de "esqueci minha senha" separado, com verificação por e-mail, não implementado ainda).
+
+**Data:** 22/10/2026
+
+---
+
 ## [CONCLUÍDO] Rodar o avatar-service de verdade na instância EC2 (AWS)
 
 **Como** desenvolvedor do LiveSellAI

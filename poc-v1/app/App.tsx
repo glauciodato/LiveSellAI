@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import UploadScreen from './src/screens/UploadScreen';
@@ -13,6 +14,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     getStoredTenant()
@@ -31,6 +33,16 @@ export default function App() {
 
   function renderContent() {
     if (tenant) {
+      if (changingPassword) {
+        return (
+          <ChangePasswordScreen
+            tenantEmail={tenant.email}
+            onDone={() => setChangingPassword(false)}
+            onCancel={() => setChangingPassword(false)}
+          />
+        );
+      }
+
       return (
         <UploadScreen
           tenantEmail={tenant.email}
@@ -39,6 +51,7 @@ export default function App() {
             setTenant(null);
             setAuthScreen('login');
           }}
+          onChangePassword={() => setChangingPassword(true)}
         />
       );
     }

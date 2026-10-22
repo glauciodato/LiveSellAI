@@ -22,6 +22,7 @@ import {
 interface UploadScreenProps {
   tenantEmail: string;
   onLogout: () => void;
+  onChangePassword: () => void;
 }
 
 interface SelectedVideo {
@@ -66,7 +67,7 @@ function formatVideoSize(bytes: number | null): string {
  * ver o avatar já gerado pra esse tenant (se algum já tiver sido gerado
  * — hoje a geração em si ainda é disparada manualmente, fora do app).
  */
-export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProps) {
+export default function UploadScreen({ tenantEmail, onLogout, onChangePassword }: UploadScreenProps) {
   const [video, setVideo] = useState<SelectedVideo | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -220,9 +221,14 @@ export default function UploadScreen({ tenantEmail, onLogout }: UploadScreenProp
     >
       <View style={styles.header}>
         <Text style={styles.tenant}>{tenantEmail}</Text>
-        <TouchableOpacity onPress={onLogout}>
-          <Text style={styles.logout}>Trocar conta</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={onChangePassword}>
+            <Text style={styles.changePassword}>Alterar senha</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onLogout}>
+            <Text style={styles.logout}>Trocar conta</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Text style={styles.title}>Enviar vídeo</Text>
@@ -365,6 +371,15 @@ const styles = StyleSheet.create({
   tenant: {
     fontSize: 14,
     color: '#555',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  changePassword: {
+    fontSize: 14,
+    color: '#111',
+    fontWeight: '600',
   },
   logout: {
     fontSize: 14,

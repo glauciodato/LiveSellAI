@@ -63,3 +63,30 @@ export async function login({ email, password }: LoginParams): Promise<Tenant> {
 
   return (await response.json()) as Tenant;
 }
+
+export interface ChangePasswordParams {
+  email: string;
+  currentPassword: string;
+  newPassword: string;
+}
+
+/** Troca a senha (exige a senha atual). Lança erro com mensagem amigável em caso de falha. */
+export async function changePassword({
+  email,
+  currentPassword,
+  newPassword,
+}: ChangePasswordParams): Promise<Tenant> {
+  const response = await fetch(`${BACKEND_URL}/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, currentPassword, newPassword }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await extractErrorMessage(response, `Falha ao trocar a senha (HTTP ${response.status}).`)
+    );
+  }
+
+  return (await response.json()) as Tenant;
+}
