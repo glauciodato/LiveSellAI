@@ -89,3 +89,8 @@ output "github_actions_frontend_role_arn" {
   description = "ARN do papel IAM que o GitHub Actions assume via OIDC pra publicar o frontend. Configurar como secret AWS_FRONTEND_DEPLOY_ROLE_ARN no repositório."
   value       = aws_iam_role.github_actions_frontend_deploy.arn
 }
+
+output "backend_api_url" {
+  description = "URL HTTPS do backend via CloudFront (usar como EXPO_PUBLIC_BACKEND_URL no deploy AWS do app, com /api no final)."
+  value       = "https://${aws_cloudfront_distribution.backend_api.domain_name}"
+}

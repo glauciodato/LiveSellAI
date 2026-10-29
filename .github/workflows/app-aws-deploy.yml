@@ -3,11 +3,12 @@ name: Build & deploy app (S3 + CloudFront)
 # Builda o app Expo pra Web (exportação estática) e publica em S3 +
 # CloudFront na AWS, a cada push que mude poc-v1/app. Roda em paralelo ao
 # deploy existente pro Azure Static Web Apps (app-deploy.yml) -- mesmo
-# código-fonte, dois destinos, sem cortar o tráfego ainda (isso é a Fase 5
-# da migração).
+# código-fonte, dois destinos.
 #
-# A URL do backend continua sendo a do Azure por enquanto (igual ao app
-# publicado hoje) -- só estamos validando a hospedagem nova.
+# A partir da Fase 5 (corte final), aponta pro backend novo na AWS (ECS
+# atrás de um CloudFront, que dá HTTPS pro ALB sem precisar de domínio
+# próprio) -- não mais pro Azure. O deploy do Azure continua intocado,
+# apontando pro backend Azure, até a Fase 6 (decomissionamento).
 #
 # Autenticação via OIDC, mesmo princípio do deploy do backend-aws.
 
@@ -26,7 +27,7 @@ permissions:
 env:
   AWS_REGION: us-east-1
   APP_DIR: poc-v1/app
-  EXPO_PUBLIC_BACKEND_URL: https://livesellai-poc-backend.azurewebsites.net/api
+  EXPO_PUBLIC_BACKEND_URL: https://d16g9ew6niffa5.cloudfront.net/api
 
 jobs:
   build-and-deploy:
