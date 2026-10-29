@@ -1,17 +1,17 @@
 # Backlog
 
-## [PENDENTE] Migração Fase 6: desligar os recursos do Azure
+## [CONCLUÍDO] Migração Fase 6: desligar os recursos do Azure
 
 **Como** desenvolvedor do LiveSellAI
 **Eu quero** desligar os recursos do Azure que ficaram redundantes depois da migração pra AWS
 **Para que** a gente pare de pagar por infraestrutura duplicada (Azure + AWS rodando a mesma coisa)
 
 **Critérios de aceitação:**
-- [ ] Confirmado com o usuário se há algum dado no Postgres/Blob Storage do Azure que precisa ser salvo antes de apagar (backup/export)
-- [ ] Recursos do Azure desligados: Function App (`livesellai-poc-backend`), Static Web App (`livesellai-poc-app`), Storage Account (`livesellaipoc4821`), Postgres Flexible Server (`livesellai-poc-db-centralus`), Key Vault (`livesellai-poc-kv`) — via `az group delete` no resource group `rg-livesellai-poc`, rodado no Azure Cloud Shell
-- [ ] Workflows do GitHub Actions que apontavam pro Azure (`app-deploy.yml`, `backend-deploy.yml`) removidos ou desativados, já que os recursos de destino não existem mais
-- [ ] Decisão registrada sobre o código-fonte específico do Azure no repositório (`poc-v1/backend`, Azure Functions) — manter como referência histórica ou remover
-- [ ] Confirmado de verdade: recursos não aparecem mais no portal do Azure, cobrança para de ser gerada
+- [x] Confirmado com o usuário se há algum dado no Postgres/Blob Storage do Azure que precisa ser salvo antes de apagar (backup/export) — usuário confirmou que não precisa salvar nada (tudo dado de teste/POC)
+- [x] Recursos do Azure desligados: Function App (`livesellai-poc-backend`), Static Web App (`livesellai-poc-app`), Storage Account (`livesellaipoc4821`), Postgres Flexible Server (`livesellai-poc-db-centralus`), Key Vault (`livesellai-poc-kv`) — via `az group delete --name rg-livesellai-poc --yes --no-wait`, rodado no Azure Cloud Shell, confirmado com `az group show` retornando `ResourceGroupNotFound`
+- [x] Workflows do GitHub Actions que apontavam pro Azure (`app-deploy.yml`, `backend-deploy.yml`) removidos de `.github/workflows/` (movidos pra `archive/azure-poc/workflows/`, ficam inertes — GitHub só executa o que está literalmente dentro de `.github/workflows/`)
+- [x] Decisão registrada sobre o código-fonte específico do Azure no repositório — mantido como referência histórica em `archive/azure-poc/` (`backend/`, `infra/`, `workflows/`, com README explicando a equivalência Azure→AWS). `avatar-service` também reorganizado nessa limpeza: movido de `poc-v1/avatar-service/` pra `avatar-service-aws/` na raiz, seguindo o mesmo padrão dos outros componentes AWS (não depende de nenhum recurso Azure, roda isolado na GPU)
+- [x] Confirmado de verdade: `az group show --name rg-livesellai-poc` retorna `ResourceGroupNotFound` — grupo de recursos e tudo dentro dele (incluindo os auxiliares automáticos: Application Insights, action group, App Service Plan) foram apagados
 
 **Observação:** Fase 6 (última) do plano de migração Azure→AWS — decomissionamento. Ação destrutiva e irreversível, só executar depois de confirmação explícita do usuário.
 
@@ -135,7 +135,7 @@
 
 ---
 
-## [PENDENTE] Migração completa da infraestrutura do Azure para a AWS
+## [CONCLUÍDO] Migração completa da infraestrutura do Azure para a AWS
 
 **Como** responsável pelo produto LiveSellAI
 **Eu quero** migrar banco de dados, backend, frontend e armazenamento de vídeos do Azure pra AWS
@@ -153,7 +153,7 @@
 3. [x] Backend em ECS Fargate — depende do S3 e do RDS prontos — **concluído 29/10/2026**, ver história própria
 4. [x] Frontend em S3 + CloudFront — depende do backend pronto — **concluído 29/10/2026**, ver história própria
 5. [x] Corte final (trocar `EXPO_PUBLIC_BACKEND_URL` e afins) + testar tudo de ponta a ponta — **concluído 29/10/2026**, ver história própria
-6. [ ] Desligar os recursos do Azure (Function App, Static Web App, Storage Account, Postgres Flexible Server, Key Vault) — só depois de validar que tudo funciona na AWS
+6. [x] Desligar os recursos do Azure (Function App, Static Web App, Storage Account, Postgres Flexible Server, Key Vault) — só depois de validar que tudo funciona na AWS — **concluído 29/10/2026**, ver história própria
 
 **Critérios de aceitação (desta história-guarda-chuva):** cada fase acima vira sua própria história no BACKLOG antes de ser implementada, seguindo o fluxo normal do projeto. Essa história fica como o plano geral de referência.
 
