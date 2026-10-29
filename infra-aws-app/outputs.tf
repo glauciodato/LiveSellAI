@@ -33,3 +33,14 @@ output "db_password" {
   value       = random_password.db.result
   sensitive   = true
 }
+
+output "backend_app_access_key_id" {
+  description = "Access Key ID do usuário de runtime do backend (uso local/dev)."
+  value       = aws_iam_access_key.backend_app.id
+}
+
+output "backend_app_secret_access_key" {
+  description = "Secret Access Key do usuário de runtime do backend. Pegar com: terraform output -raw backend_app_secret_access_key"
+  value       = aws_iam_access_key.backend_app.secret
+  sensitive   = true
+}

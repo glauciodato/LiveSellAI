@@ -1,5 +1,26 @@
 # Backlog
 
+## [PENDENTE] Migração Fase 3: backend em ECS Fargate
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** o backend rodando em container no ECS Fargate, usando S3 e RDS em vez de Blob Storage e Postgres do Azure
+**Para que** a gente avance a migração pra AWS (backend é a terceira peça, depois de S3 e RDS)
+
+**Critérios de aceitação:**
+- [x] Código novo em `backend-aws/` (Express.js) — não mexe no `poc-v1/backend/` atual (Azure continua funcionando normalmente até o corte final)
+- [x] Endpoints portados: `register`, `login`, `change-password`, gerar URL de upload (presigned S3 em vez de SAS), listar vídeos, buscar avatar mais recente
+- [x] Testado localmente contra o RDS e o S3 reais antes de criar qualquer infraestrutura ECS — usuário IAM dedicado (`livesellai-backend-app-dev`, só `s3:PutObject`/`GetObject`/`ListBucket` no bucket de mídia) criado via `infra-aws-app/backend-iam.tf`; todos os endpoints testados com dados reais (cadastro, login, troca de senha, upload via presigned URL, download, listagem) e depois limpos
+- [ ] Dockerfile funcional, imagem publicada no ECR
+- [ ] ECS Fargate rodando o container, atrás de um Application Load Balancer
+- [ ] Senha do RDS injetada via AWS Secrets Manager (não em texto puro na task definition)
+- [ ] Testado de verdade contra a URL pública do ALB (cadastro, login, upload, listagem)
+
+**Observação:** Fase 3 do plano de migração Azure→AWS. O app Expo (frontend) continua apontando pro backend do Azure até a Fase 5 (corte final) — por enquanto só validamos que o backend novo funciona de ponta a ponta. Dockerfile já existe em `backend-aws/Dockerfile`, ainda não testado/publicado no ECR.
+
+**Data:** 29/10/2026
+
+---
+
 ## [CONCLUÍDO] Migração Fase 2: provisionar RDS Postgres
 
 **Como** desenvolvedor do LiveSellAI

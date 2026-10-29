@@ -77,6 +77,27 @@
       "Condition": {
         "StringLike": { "iam:AWSServiceName": "rds.amazonaws.com" }
       }
+    },
+    {
+      "Sid": "IamUserManagementForBackendApp",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateUser",
+        "iam:DeleteUser",
+        "iam:TagUser",
+        "iam:UntagUser",
+        "iam:GetUser",
+        "iam:PutUserPolicy",
+        "iam:DeleteUserPolicy",
+        "iam:GetUserPolicy",
+        "iam:ListUserPolicies",
+        "iam:ListAttachedUserPolicies",
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:ListAccessKeys",
+        "iam:UpdateAccessKey"
+      ],
+      "Resource": "arn:aws:iam::*:user/livesellai-*"
     }
   ]
 }
