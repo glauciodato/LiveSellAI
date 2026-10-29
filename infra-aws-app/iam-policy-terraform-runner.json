@@ -29,6 +29,16 @@
         "s3:PutBucketOwnershipControls"
       ],
       "Resource": "arn:aws:s3:::livesellai-*"
+    },
+    {
+      "Sid": "S3ObjectReadWriteForTesting",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::livesellai-*/*"
     }
   ]
 }
