@@ -1,5 +1,24 @@
 # Backlog
 
+## [PENDENTE] Migração Fase 6: desligar os recursos do Azure
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** desligar os recursos do Azure que ficaram redundantes depois da migração pra AWS
+**Para que** a gente pare de pagar por infraestrutura duplicada (Azure + AWS rodando a mesma coisa)
+
+**Critérios de aceitação:**
+- [ ] Confirmado com o usuário se há algum dado no Postgres/Blob Storage do Azure que precisa ser salvo antes de apagar (backup/export)
+- [ ] Recursos do Azure desligados: Function App (`livesellai-poc-backend`), Static Web App (`livesellai-poc-app`), Storage Account (`livesellaipoc4821`), Postgres Flexible Server (`livesellai-poc-db-centralus`), Key Vault (`livesellai-poc-kv`) — via `az group delete` no resource group `rg-livesellai-poc`, rodado no Azure Cloud Shell
+- [ ] Workflows do GitHub Actions que apontavam pro Azure (`app-deploy.yml`, `backend-deploy.yml`) removidos ou desativados, já que os recursos de destino não existem mais
+- [ ] Decisão registrada sobre o código-fonte específico do Azure no repositório (`poc-v1/backend`, Azure Functions) — manter como referência histórica ou remover
+- [ ] Confirmado de verdade: recursos não aparecem mais no portal do Azure, cobrança para de ser gerada
+
+**Observação:** Fase 6 (última) do plano de migração Azure→AWS — decomissionamento. Ação destrutiva e irreversível, só executar depois de confirmação explícita do usuário.
+
+**Data:** 29/10/2026
+
+---
+
 ## [CONCLUÍDO] Migração Fase 5: corte final (app aponta pro backend/storage da AWS)
 
 **Como** desenvolvedor do LiveSellAI
@@ -131,9 +150,9 @@
 **Ordem de execução acordada (fazer uma fase de cada vez, com calma):**
 1. [x] S3 (armazenamento de vídeos/avatares) — mais isolado, sem dependências — **concluído 28/10/2026**, ver história própria
 2. [x] RDS Postgres — banco de dados novo, schema recriado do zero — **concluído 29/10/2026**, ver história própria
-3. [ ] Backend em ECS Fargate — depende do S3 e do RDS prontos
-4. [ ] Frontend em S3 + CloudFront — depende do backend pronto
-5. [ ] Corte final (trocar `EXPO_PUBLIC_BACKEND_URL` e afins) + testar tudo de ponta a ponta
+3. [x] Backend em ECS Fargate — depende do S3 e do RDS prontos — **concluído 29/10/2026**, ver história própria
+4. [x] Frontend em S3 + CloudFront — depende do backend pronto — **concluído 29/10/2026**, ver história própria
+5. [x] Corte final (trocar `EXPO_PUBLIC_BACKEND_URL` e afins) + testar tudo de ponta a ponta — **concluído 29/10/2026**, ver história própria
 6. [ ] Desligar os recursos do Azure (Function App, Static Web App, Storage Account, Postgres Flexible Server, Key Vault) — só depois de validar que tudo funciona na AWS
 
 **Critérios de aceitação (desta história-guarda-chuva):** cada fase acima vira sua própria história no BACKLOG antes de ser implementada, seguindo o fluxo normal do projeto. Essa história fica como o plano geral de referência.
