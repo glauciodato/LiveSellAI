@@ -7,13 +7,41 @@
 **Para que** o avatar gerado fique apresentável o suficiente pra uso real em vendas
 
 **Critérios de aceitação:**
-- [ ] Testar a geração sem `--use_float16` (agora com GPU T4 dedicada de 16GB na AWS, talvez não seja mais necessário economizar VRAM) e comparar nitidez da boca
-- [ ] Investigar o checkpoint da comunidade `traderpedroso/F5-TTS-BRAZILIAN-PORTUGUESE` (identificado na pesquisa inicial, não integrado por falta de documentação/vocabulário) e avaliar se resolve a entonação robotizada
-- [ ] Comparar resultado antes/depois com o vídeo de teste já gerado (21/10, avatar da conta `glauciomartins2@gmail.com`)
+- [x] Testar a geração sem `--use_float16` — testado, **sem diferença perceptível** de qualidade
+- [x] Testar `--extra_margin 20` (padrão é 10) — testado, **sem diferença perceptível**
+- [x] Testar `--parsing_mode raw` (padrão é `jaw`) — testado, **sem diferença perceptível**
+- [ ] Investigar o checkpoint da comunidade `traderpedroso/F5-TTS-BRAZILIAN-PORTUGUESE` (identificado na pesquisa inicial, não integrado por falta de documentação/vocabulário) e avaliar se resolve a entonação robotizada — ainda não tentado
+- [ ] Testar com um vídeo de origem em resolução mais alta (o atual é só 474×850 — pode ser o fator limitante real, não o MuseTalk em si)
 
-**Observação:** confirmado pelo usuário em 22/10/2026 — avatar gerado na AWS funciona de ponta a ponta, mas com boca borrada e voz robotizada em PT-BR. São limitações conhecidas desde a pesquisa inicial de modelos, não bugs novos. Deliberadamente adiado pra depois (usuário escolheu focar em outra prioridade agora).
+**Observação:** confirmado pelo usuário em 22/10/2026 — avatar gerado na AWS funciona de ponta a ponta, mas com boca borrada e voz robotizada em PT-BR. 4 variantes testadas (22/10/2026, containers Docker editados ao vivo, sem rebuild de imagem) deram o mesmo resultado visual — sugere que o teto de qualidade é estrutural (resolução do vídeo de origem e/ou limitação inerente do MuseTalk), não um parâmetro de configuração. Pausado em 28/10/2026 — usuário decidiu priorizar a migração de infraestrutura pro AWS antes de voltar nisso.
 
-**Data:** 22/10/2026
+**Data:** 22/10/2026 (atualizado 28/10/2026)
+
+---
+
+## [PENDENTE] Migração completa da infraestrutura do Azure para a AWS
+
+**Como** responsável pelo produto LiveSellAI
+**Eu quero** migrar banco de dados, backend, frontend e armazenamento de vídeos do Azure pra AWS
+**Para que** toda a infraestrutura fique consolidada num único provedor (já estamos usando AWS pra GPU)
+
+**Decisões já tomadas (28/10/2026):**
+- Banco de dados: **RDS** (gerenciado), não Postgres manual em EC2
+- Backend: **ECS com Fargate** (containers gerenciados), não Lambda
+- Frontend: **S3 + CloudFront**
+- Dados existentes no Postgres do Azure: **não migrar** — começar do zero no RDS (ainda é fase de POC)
+
+**Ordem de execução acordada (fazer uma fase de cada vez, com calma):**
+1. [ ] S3 (armazenamento de vídeos/avatares) — mais isolado, sem dependências
+2. [ ] RDS Postgres — banco de dados novo, schema recriado do zero
+3. [ ] Backend em ECS Fargate — depende do S3 e do RDS prontos
+4. [ ] Frontend em S3 + CloudFront — depende do backend pronto
+5. [ ] Corte final (trocar `EXPO_PUBLIC_BACKEND_URL` e afins) + testar tudo de ponta a ponta
+6. [ ] Desligar os recursos do Azure (Function App, Static Web App, Storage Account, Postgres Flexible Server, Key Vault) — só depois de validar que tudo funciona na AWS
+
+**Critérios de aceitação (desta história-guarda-chuva):** cada fase acima vira sua própria história no BACKLOG antes de ser implementada, seguindo o fluxo normal do projeto. Essa história fica como o plano geral de referência.
+
+**Data:** 28/10/2026
 
 ---
 
