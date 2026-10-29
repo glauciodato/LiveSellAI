@@ -1,18 +1,18 @@
 # Backlog
 
-## [PENDENTE] Migração Fase 2: provisionar RDS Postgres
+## [CONCLUÍDO] Migração Fase 2: provisionar RDS Postgres
 
 **Como** desenvolvedor do LiveSellAI
 **Eu quero** um banco de dados Postgres gerenciado (RDS) na AWS, com schema de usuários recriado do zero
 **Para que** a gente avance a migração pra AWS (banco de dados é a segunda peça, depois do S3)
 
 **Critérios de aceitação:**
-- [ ] VPC mínima própria (2 subnets em AZs diferentes — exigência do RDS, mesmo em Single-AZ)
-- [ ] Instância RDS Postgres `db.t4g.micro`, 20GB `gp3`, Single-AZ, sem Performance Insights (menor custo possível)
-- [ ] Acesso restrito por security group (só o IP do desenvolvedor, nada aberto pra internet) — igual ao padrão já usado na GPU
-- [ ] Senha gerada automaticamente (nunca digitada manualmente), disponível só via output sensível do Terraform
-- [ ] Tabela `users` recriada (mesmo schema do Azure: id, name, email único, password_hash, created_at)
-- [ ] Testado de verdade: conectar via `psql`, criar a tabela, inserir e consultar um registro de teste
+- [x] VPC mínima própria (2 subnets em AZs diferentes — exigência do RDS, mesmo em Single-AZ)
+- [x] Instância RDS Postgres `db.t4g.micro`, 20GB `gp3`, Single-AZ, sem Performance Insights — `livesellai-db-dev.cypww0maq24b.us-east-1.rds.amazonaws.com`, Postgres 16.13
+- [x] Acesso restrito por security group (só o IP do desenvolvedor, nada aberto pra internet)
+- [x] Senha gerada automaticamente (`random_password`, nunca digitada manualmente), disponível só via `terraform output -raw db_password`
+- [x] Tabela `users` recriada (mesmo schema do Azure: id, name, email único, password_hash, created_at)
+- [x] Testado de verdade: conectado via Node (`pg`, já que `psql` não estava instalado localmente), tabela criada, registro inserido e consultado, depois removido
 
 **Observação:** Fase 2 do plano de migração Azure→AWS (ver história "Migração completa da infraestrutura do Azure para a AWS"). Dados existentes no Postgres do Azure não serão migrados (decisão já tomada) — schema recriado do zero.
 
@@ -72,7 +72,7 @@
 
 **Ordem de execução acordada (fazer uma fase de cada vez, com calma):**
 1. [x] S3 (armazenamento de vídeos/avatares) — mais isolado, sem dependências — **concluído 28/10/2026**, ver história própria
-2. [ ] RDS Postgres — banco de dados novo, schema recriado do zero
+2. [x] RDS Postgres — banco de dados novo, schema recriado do zero — **concluído 29/10/2026**, ver história própria
 3. [ ] Backend em ECS Fargate — depende do S3 e do RDS prontos
 4. [ ] Frontend em S3 + CloudFront — depende do backend pronto
 5. [ ] Corte final (trocar `EXPO_PUBLIC_BACKEND_URL` e afins) + testar tudo de ponta a ponta
