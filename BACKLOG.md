@@ -1,5 +1,25 @@
 # Backlog
 
+## [PENDENTE] Migração Fase 2: provisionar RDS Postgres
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** um banco de dados Postgres gerenciado (RDS) na AWS, com schema de usuários recriado do zero
+**Para que** a gente avance a migração pra AWS (banco de dados é a segunda peça, depois do S3)
+
+**Critérios de aceitação:**
+- [ ] VPC mínima própria (2 subnets em AZs diferentes — exigência do RDS, mesmo em Single-AZ)
+- [ ] Instância RDS Postgres `db.t4g.micro`, 20GB `gp3`, Single-AZ, sem Performance Insights (menor custo possível)
+- [ ] Acesso restrito por security group (só o IP do desenvolvedor, nada aberto pra internet) — igual ao padrão já usado na GPU
+- [ ] Senha gerada automaticamente (nunca digitada manualmente), disponível só via output sensível do Terraform
+- [ ] Tabela `users` recriada (mesmo schema do Azure: id, name, email único, password_hash, created_at)
+- [ ] Testado de verdade: conectar via `psql`, criar a tabela, inserir e consultar um registro de teste
+
+**Observação:** Fase 2 do plano de migração Azure→AWS (ver história "Migração completa da infraestrutura do Azure para a AWS"). Dados existentes no Postgres do Azure não serão migrados (decisão já tomada) — schema recriado do zero.
+
+**Data:** 28/10/2026
+
+---
+
 ## [CONCLUÍDO] Migração Fase 1: provisionar S3 pro armazenamento de vídeos/avatares
 
 **Como** desenvolvedor do LiveSellAI

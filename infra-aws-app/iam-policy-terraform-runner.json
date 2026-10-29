@@ -41,6 +41,33 @@
         "s3:GetObjectTagging"
       ],
       "Resource": "arn:aws:s3:::livesellai-*/*"
+    },
+    {
+      "Sid": "RdsReadOnlyWideBecauseLowRisk",
+      "Effect": "Allow",
+      "Action": [
+        "rds:Describe*",
+        "rds:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "RdsManagementWrite",
+      "Effect": "Allow",
+      "Action": [
+        "rds:CreateDBInstance",
+        "rds:DeleteDBInstance",
+        "rds:ModifyDBInstance",
+        "rds:CreateDBSubnetGroup",
+        "rds:DeleteDBSubnetGroup",
+        "rds:ModifyDBSubnetGroup",
+        "rds:AddTagsToResource",
+        "rds:RemoveTagsFromResource"
+      ],
+      "Resource": [
+        "arn:aws:rds:*:*:db:livesellai-*",
+        "arn:aws:rds:*:*:subgrp:livesellai-*"
+      ]
     }
   ]
 }
