@@ -1,5 +1,24 @@
 # Backlog
 
+## [PENDENTE] Migração Fase 1: provisionar S3 pro armazenamento de vídeos/avatares
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** um bucket S3 com a mesma estrutura de pastas que já usamos no Azure Blob Storage (`tenants/<tenant>/`, `avatars/<tenant>/`)
+**Para que** a gente comece a migração pra AWS pela peça mais isolada, sem dependências de outras partes ainda não migradas
+
+**Critérios de aceitação:**
+- [ ] Bucket S3 criado via Terraform (`infra-aws-app/`, novo projeto, separado do `infra-aws-dev/` que é só a sandbox de GPU)
+- [ ] Acesso público bloqueado (Block Public Access) — acesso só via URL pré-assinada (presigned URL), igual ao padrão de SAS token que já usamos
+- [ ] CORS configurado pra permitir upload direto do navegador (PUT)
+- [ ] Criptografia em repouso habilitada (SSE-S3, padrão)
+- [ ] Testado de verdade: gerar uma presigned URL, fazer upload de um arquivo de teste, confirmar que aparece no bucket
+
+**Observação:** essa é a Fase 1 do plano de migração Azure→AWS (ver história "Migração completa da infraestrutura do Azure para a AWS"). O backend e o app só vão de fato usar esse bucket nas fases seguintes — por enquanto é só provisionar e validar que funciona.
+
+**Data:** 28/10/2026
+
+---
+
 ## [PENDENTE] Melhorar qualidade do avatar gerado (boca borrada + voz robotizada)
 
 **Como** responsável pelo produto LiveSellAI
