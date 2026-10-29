@@ -10,12 +10,12 @@
 - [x] Código novo em `backend-aws/` (Express.js) — não mexe no `poc-v1/backend/` atual (Azure continua funcionando normalmente até o corte final)
 - [x] Endpoints portados: `register`, `login`, `change-password`, gerar URL de upload (presigned S3 em vez de SAS), listar vídeos, buscar avatar mais recente
 - [x] Testado localmente contra o RDS e o S3 reais antes de criar qualquer infraestrutura ECS — usuário IAM dedicado (`livesellai-backend-app-dev`, só `s3:PutObject`/`GetObject`/`ListBucket` no bucket de mídia) criado via `infra-aws-app/backend-iam.tf`; todos os endpoints testados com dados reais (cadastro, login, troca de senha, upload via presigned URL, download, listagem) e depois limpos
-- [ ] Dockerfile funcional, imagem publicada no ECR
-- [ ] ECS Fargate rodando o container, atrás de um Application Load Balancer
-- [ ] Senha do RDS injetada via AWS Secrets Manager (não em texto puro na task definition)
+- [ ] Dockerfile funcional, imagem publicada no ECR (build/push via GitHub Actions, `.github/workflows/backend-aws-deploy.yml`, login federado via OIDC)
+- [x] ECS Fargate rodando o container, atrás de um Application Load Balancer — cluster `livesellai-dev`, serviço `livesellai-backend-dev`, ALB em `http://livesellai-backend-dev-1256562025.us-east-1.elb.amazonaws.com` (task ainda sem rodar — falta a imagem no ECR)
+- [x] Senha do RDS injetada via AWS Secrets Manager (não em texto puro na task definition) — secret `livesellai-db-password-dev`, lido pelo Task Execution Role
 - [ ] Testado de verdade contra a URL pública do ALB (cadastro, login, upload, listagem)
 
-**Observação:** Fase 3 do plano de migração Azure→AWS. O app Expo (frontend) continua apontando pro backend do Azure até a Fase 5 (corte final) — por enquanto só validamos que o backend novo funciona de ponta a ponta. Dockerfile já existe em `backend-aws/Dockerfile`, ainda não testado/publicado no ECR.
+**Observação:** Fase 3 do plano de migração Azure→AWS. O app Expo (frontend) continua apontando pro backend do Azure até a Fase 5 (corte final) — por enquanto só validamos que o backend novo funciona de ponta a ponta. Infra do ECS inteira provisionada via Terraform (ECR, cluster, task definition, service, ALB, Secrets Manager, OIDC do GitHub Actions); faltou só publicar a primeira imagem e testar contra o ALB real.
 
 **Data:** 29/10/2026
 

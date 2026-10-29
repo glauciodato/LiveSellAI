@@ -79,6 +79,34 @@
       }
     },
     {
+      "Sid": "CreateServiceLinkedRoleForElb",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::*:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing*",
+      "Condition": {
+        "StringLike": { "iam:AWSServiceName": "elasticloadbalancing.amazonaws.com" }
+      }
+    },
+    {
+      "Sid": "CreateServiceLinkedRoleForEcs",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::*:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS*",
+      "Condition": {
+        "StringLike": { "iam:AWSServiceName": "ecs.amazonaws.com" }
+      }
+    },
+    {
+      "Sid": "TagServiceLinkedRoles",
+      "Effect": "Allow",
+      "Action": ["iam:TagRole", "iam:UntagRole"],
+      "Resource": [
+        "arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS*",
+        "arn:aws:iam::*:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing*",
+        "arn:aws:iam::*:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS*"
+      ]
+    },
+    {
       "Sid": "IamUserManagementForBackendApp",
       "Effect": "Allow",
       "Action": [
@@ -98,6 +126,154 @@
         "iam:UpdateAccessKey"
       ],
       "Resource": "arn:aws:iam::*:user/livesellai-*"
+    },
+    {
+      "Sid": "IamRoleManagementForAppRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:GetRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:UpdateAssumeRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::*:role/livesellai-*"
+    },
+    {
+      "Sid": "PassRoleToEcsOnly",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::*:role/livesellai-*",
+      "Condition": {
+        "StringEquals": { "iam:PassedToService": "ecs-tasks.amazonaws.com" }
+      }
+    },
+    {
+      "Sid": "GithubOidcProviderManagement",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateOpenIDConnectProvider",
+        "iam:DeleteOpenIDConnectProvider",
+        "iam:GetOpenIDConnectProvider",
+        "iam:ListOpenIDConnectProviders",
+        "iam:TagOpenIDConnectProvider",
+        "iam:UpdateOpenIDConnectProviderThumbprint"
+      ],
+      "Resource": "arn:aws:iam::*:oidc-provider/token.actions.githubusercontent.com"
+    },
+    {
+      "Sid": "EcrReadOnlyWideBecauseLowRisk",
+      "Effect": "Allow",
+      "Action": ["ecr:Describe*", "ecr:List*", "ecr:Get*"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "EcrRepositoryManagementWrite",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository",
+        "ecr:DeleteRepository",
+        "ecr:PutLifecyclePolicy",
+        "ecr:DeleteLifecyclePolicy",
+        "ecr:TagResource",
+        "ecr:UntagResource",
+        "ecr:PutImageScanningConfiguration",
+        "ecr:PutImageTagMutability"
+      ],
+      "Resource": "arn:aws:ecr:*:*:repository/livesellai-*"
+    },
+    {
+      "Sid": "EcsReadOnlyWideBecauseLowRisk",
+      "Effect": "Allow",
+      "Action": ["ecs:Describe*", "ecs:List*"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "EcsManagementWrite",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:CreateCluster",
+        "ecs:DeleteCluster",
+        "ecs:TagResource",
+        "ecs:UntagResource",
+        "ecs:RegisterTaskDefinition",
+        "ecs:DeregisterTaskDefinition",
+        "ecs:CreateService",
+        "ecs:UpdateService",
+        "ecs:DeleteService",
+        "ecs:PutClusterCapacityProviders"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ElbReadOnlyWideBecauseLowRisk",
+      "Effect": "Allow",
+      "Action": ["elasticloadbalancing:Describe*"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ElbManagementWrite",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:CreateLoadBalancer",
+        "elasticloadbalancing:DeleteLoadBalancer",
+        "elasticloadbalancing:CreateTargetGroup",
+        "elasticloadbalancing:DeleteTargetGroup",
+        "elasticloadbalancing:ModifyTargetGroup",
+        "elasticloadbalancing:ModifyTargetGroupAttributes",
+        "elasticloadbalancing:CreateListener",
+        "elasticloadbalancing:DeleteListener",
+        "elasticloadbalancing:ModifyListener",
+        "elasticloadbalancing:ModifyLoadBalancerAttributes",
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:RemoveTags",
+        "elasticloadbalancing:RegisterTargets",
+        "elasticloadbalancing:DeregisterTargets",
+        "elasticloadbalancing:SetSecurityGroups",
+        "elasticloadbalancing:SetSubnets"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SecretsManagerManagement",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:CreateSecret",
+        "secretsmanager:DeleteSecret",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:PutSecretValue",
+        "secretsmanager:TagResource",
+        "secretsmanager:UpdateSecret"
+      ],
+      "Resource": "arn:aws:secretsmanager:*:*:secret:livesellai-*"
+    },
+    {
+      "Sid": "CloudWatchLogsManagementForEcs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:TagResource",
+        "logs:ListTagsForResource"
+      ],
+      "Resource": "arn:aws:logs:*:*:log-group:/ecs/livesellai-*"
+    },
+    {
+      "Sid": "CloudWatchLogsReadOnlyWideBecauseLowRisk",
+      "Effect": "Allow",
+      "Action": ["logs:DescribeLogGroups"],
+      "Resource": "*"
     }
   ]
 }

@@ -1,0 +1,75 @@
+name: Build & deploy backend-aws (ECS Fargate)
+
+# Builda a imagem Docker do backend-aws, publica no ECR e força um novo
+# deploy no ECS Fargate, a cada push que mude esse diretório.
+#
+# Autenticação via OIDC (login federado, sem chave de acesso guardada no
+# repositório) -- mesmo princípio do deploy do backend Azure
+# (AZURE_CLIENT_ID + federated credential). O papel IAM é criado pelo
+# Terraform (infra-aws-app/github-oidc.tf) e seu ARN fica no secret
+# AWS_BACKEND_DEPLOY_ROLE_ARN.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend-aws/**"
+      - ".github/workflows/backend-aws-deploy.yml"
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: livesellai-dev
+  ECS_SERVICE: livesellai-backend-dev
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login na AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_BACKEND_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login no ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Metadados da imagem (tags/labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.ecr-login.outputs.registry }}/livesellai-backend-dev
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build e push
+        uses: docker/build-push-action@v5
+        with:
+          context: backend-aws
+          file: backend-aws/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
+
+      - name: Forcar novo deploy no ECS
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --force-new-deployment \
+            --region "$AWS_REGION"

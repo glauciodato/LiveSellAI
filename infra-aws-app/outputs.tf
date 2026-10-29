@@ -44,3 +44,28 @@ output "backend_app_secret_access_key" {
   value       = aws_iam_access_key.backend_app.secret
   sensitive   = true
 }
+
+output "ecr_repository_url" {
+  description = "URL do repositório ECR do backend (usado pelo GitHub Actions pra publicar a imagem)."
+  value       = aws_ecr_repository.backend.repository_url
+}
+
+output "github_actions_role_arn" {
+  description = "ARN do papel IAM que o GitHub Actions assume via OIDC pra publicar no ECR e atualizar o ECS. Configurar como secret AWS_BACKEND_DEPLOY_ROLE_ARN no repositório."
+  value       = aws_iam_role.github_actions_backend_deploy.arn
+}
+
+output "ecs_cluster_name" {
+  description = "Nome do cluster ECS."
+  value       = aws_ecs_cluster.main.name
+}
+
+output "ecs_service_name" {
+  description = "Nome do serviço ECS do backend."
+  value       = aws_ecs_service.backend.name
+}
+
+output "backend_alb_url" {
+  description = "URL pública do backend (Application Load Balancer)."
+  value       = "http://${aws_lb.backend.dns_name}"
+}

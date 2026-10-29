@@ -55,3 +55,15 @@ variable "db_username" {
   type        = string
   default     = "livesellai_admin"
 }
+
+variable "github_repo" {
+  description = "owner/repo do GitHub autorizado a assumir o papel de deploy via OIDC (GitHub Actions)."
+  type        = string
+  default     = "glauciodato/LiveSellAI"
+}
+
+variable "backend_image_tag" {
+  description = "Tag da imagem no ECR usada na task definition do backend. Atualizada a cada deploy pelo GitHub Actions."
+  type        = string
+  default     = "latest"
+}
