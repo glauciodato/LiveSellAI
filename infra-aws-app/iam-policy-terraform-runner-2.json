@@ -1,0 +1,32 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3BucketPolicyManagement",
+      "Effect": "Allow",
+      "Action": ["s3:PutBucketPolicy", "s3:GetBucketPolicy", "s3:DeleteBucketPolicy"],
+      "Resource": "arn:aws:s3:::livesellai-*"
+    },
+    {
+      "Sid": "CloudFrontReadOnlyWideBecauseLowRisk",
+      "Effect": "Allow",
+      "Action": ["cloudfront:Get*", "cloudfront:List*"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudFrontManagementWrite",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateDistribution",
+        "cloudfront:UpdateDistribution",
+        "cloudfront:DeleteDistribution",
+        "cloudfront:TagResource",
+        "cloudfront:UntagResource",
+        "cloudfront:CreateOriginAccessControl",
+        "cloudfront:UpdateOriginAccessControl",
+        "cloudfront:DeleteOriginAccessControl"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

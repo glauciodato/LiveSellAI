@@ -69,3 +69,23 @@ output "backend_alb_url" {
   description = "URL pública do backend (Application Load Balancer)."
   value       = "http://${aws_lb.backend.dns_name}"
 }
+
+output "frontend_bucket_name" {
+  description = "Nome do bucket S3 do frontend (destino do `aws s3 sync` no deploy)."
+  value       = aws_s3_bucket.frontend.id
+}
+
+output "frontend_cloudfront_distribution_id" {
+  description = "ID da distribuição CloudFront (usado pra invalidar o cache no deploy)."
+  value       = aws_cloudfront_distribution.frontend.id
+}
+
+output "frontend_url" {
+  description = "URL pública do frontend (domínio padrão do CloudFront)."
+  value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
+}
+
+output "github_actions_frontend_role_arn" {
+  description = "ARN do papel IAM que o GitHub Actions assume via OIDC pra publicar o frontend. Configurar como secret AWS_FRONTEND_DEPLOY_ROLE_ARN no repositório."
+  value       = aws_iam_role.github_actions_frontend_deploy.arn
+}

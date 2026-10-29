@@ -1,5 +1,24 @@
 # Backlog
 
+## [PENDENTE] Migração Fase 4: frontend em S3 + CloudFront
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** o app Expo (build estático Web) hospedado em S3 + CloudFront na AWS
+**Para que** a gente avance a migração pra AWS (frontend é a quarta peça, depois de S3, RDS e backend)
+
+**Critérios de aceitação:**
+- [x] Bucket S3 dedicado ao frontend (separado do bucket de mídia), privado, acesso só via CloudFront (Origin Access Control) — `livesellai-frontend-a1246ddb`
+- [x] Distribuição CloudFront na frente do bucket, HTTPS no domínio padrão do CloudFront (sem domínio customizado por enquanto) — `https://d105v1e2o0341v.cloudfront.net`
+- [x] Deploy automático via GitHub Actions (OIDC, mesmo padrão do backend) — build com `expo export --platform web`, sync pro S3, invalidação do cache do CloudFront (`.github/workflows/app-aws-deploy.yml`)
+- [ ] Build aponta pro MESMO backend de hoje (Azure) — igual às fases anteriores, só provisiona e valida a hospedagem nova, sem cortar o tráfego ainda (isso é a Fase 5)
+- [ ] Testado de verdade: acessar a URL do CloudFront num navegador e confirmar que a aplicação carrega e funciona (login contra o backend Azure)
+
+**Observação:** Fase 4 do plano de migração Azure→AWS. O app não tem `expo-router` (tela única, `App.tsx`), então o export estático não precisa de fallback de rotas complexo no CloudFront.
+
+**Data:** 29/10/2026
+
+---
+
 ## [CONCLUÍDO] Migração Fase 3: backend em ECS Fargate
 
 **Como** desenvolvedor do LiveSellAI

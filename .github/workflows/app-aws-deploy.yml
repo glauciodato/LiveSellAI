@@ -1,0 +1,67 @@
+name: Build & deploy app (S3 + CloudFront)
+
+# Builda o app Expo pra Web (exportação estática) e publica em S3 +
+# CloudFront na AWS, a cada push que mude poc-v1/app. Roda em paralelo ao
+# deploy existente pro Azure Static Web Apps (app-deploy.yml) -- mesmo
+# código-fonte, dois destinos, sem cortar o tráfego ainda (isso é a Fase 5
+# da migração).
+#
+# A URL do backend continua sendo a do Azure por enquanto (igual ao app
+# publicado hoje) -- só estamos validando a hospedagem nova.
+#
+# Autenticação via OIDC, mesmo princípio do deploy do backend-aws.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "poc-v1/app/**"
+      - ".github/workflows/app-aws-deploy.yml"
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  APP_DIR: poc-v1/app
+  EXPO_PUBLIC_BACKEND_URL: https://livesellai-poc-backend.azurewebsites.net/api
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar dependências
+        run: |
+          cd "$APP_DIR"
+          npm ci
+
+      - name: Exportar build estático (Web)
+        run: |
+          cd "$APP_DIR"
+          npx expo export --platform web --output-dir dist
+
+      - name: Login na AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_FRONTEND_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync pro S3
+        run: |
+          aws s3 sync "$APP_DIR/dist" "s3://${{ secrets.AWS_FRONTEND_S3_BUCKET }}" --delete
+
+      - name: Invalidar cache do CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.AWS_FRONTEND_CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"
