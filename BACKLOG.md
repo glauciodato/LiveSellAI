@@ -1,6 +1,6 @@
 # Backlog
 
-## [PENDENTE] Migração Fase 5: corte final (app aponta pro backend/storage da AWS)
+## [CONCLUÍDO] Migração Fase 5: corte final (app aponta pro backend/storage da AWS)
 
 **Como** desenvolvedor do LiveSellAI
 **Eu quero** o app Expo publicado na AWS apontando pro backend novo (ECS/ALB) em vez do Azure
@@ -9,8 +9,8 @@
 **Critérios de aceitação:**
 - [x] CloudFront na frente do ALB do backend (origem HTTP, viewer HTTPS) — resolve o bloqueio de "mixed content" do navegador (frontend em HTTPS no CloudFront não pode chamar um backend em HTTP puro) — `https://d16g9ew6niffa5.cloudfront.net`, testado com `/health` e `POST /api/login` reais
 - [x] `EXPO_PUBLIC_BACKEND_URL` do deploy AWS do app (`.github/workflows/app-aws-deploy.yml`) atualizado pra essa nova URL HTTPS do backend, em vez da URL do Azure
-- [ ] Testado de verdade: abrir a URL do CloudFront do frontend, cadastrar/logar, confirmar que a chamada vai pro backend novo (ECS) e não mais pro Azure
-- [ ] Deploy do Azure (`app-deploy.yml`, `backend-deploy.yml`) continua intocado e funcionando — só o deploy AWS muda de alvo
+- [x] Testado de verdade: abrir a URL do CloudFront do frontend, cadastrar/logar, confirmar que a chamada vai pro backend novo (ECS) e não mais pro Azure — confirmado pelo usuário (cadastro + login reais no RDS novo, que começou vazio de propósito)
+- [x] Deploy do Azure (`app-deploy.yml`, `backend-deploy.yml`) continua intocado e funcionando — só o deploy AWS muda de alvo
 
 **Observação:** Fase 5 do plano de migração Azure→AWS. Não é uma troca de DNS/domínio (não compramos domínio customizado ainda) — é a URL do CloudFront do frontend AWS que passa a falar com a URL do CloudFront na frente do ALB, em vez de falar com o Azure. O Azure continua no ar e funcional até a Fase 6 (decomissionamento).
 
