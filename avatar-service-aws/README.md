@@ -38,7 +38,7 @@ Diferente do RunPod (que builda direto de um repositório GitHub conectado),
 a maioria dos provedores de GPU (Vast.ai incluso) espera uma imagem **já
 publicada** num registry. Por isso, a imagem é buildada automaticamente pelo
 GitHub Actions (`.github/workflows/avatar-service-image.yml`) a cada push em
-`poc-v1/avatar-service/**`, e publicada em:
+`avatar-service-aws/**`, e publicada em:
 
 ```
 ghcr.io/glauciodato/livesellai/avatar-service:latest
@@ -114,7 +114,7 @@ use o script `setup-manual.sh` deste diretório, que instala manualmente
    terminal com GPU, direto no navegador)
 2. No terminal, rode:
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/glauciodato/LiveSellAI/main/poc-v1/avatar-service/setup-manual.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/glauciodato/LiveSellAI/main/avatar-service-aws/setup-manual.sh | bash
    ```
    (ou baixe o arquivo e rode `bash setup-manual.sh`)
 3. Ao terminar, o script mostra o comando exato para testar (mesmo formato

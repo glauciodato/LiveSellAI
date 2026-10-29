@@ -10,21 +10,23 @@ do mesmo código em Web, iOS e Android.
 > do repositório. Os recursos do Azure (Function App, Postgres, Blob
 > Storage, Key Vault, Static Web App) foram desligados; o código e os
 > scripts específicos do Azure ficaram arquivados em `archive/azure-poc/`
-> como referência histórica. O restante deste documento descreve a
-> arquitetura original (Azure) — ainda válido pra entender o `app/` e o
-> `avatar-service/`, que continuam em uso.
+> como referência histórica. O serviço de geração de avatar também saiu
+> daqui — agora é `avatar-service-aws/`, na raiz do repositório. O
+> restante deste documento descreve a arquitetura original (Azure) —
+> ainda válido pra entender o `app/`, que continua em uso.
 
 ## Estrutura
 
 ```
 poc-v1/
-├── app/             App Expo (React Native + Web) — tela de e-mail e upload de vídeo
-└── avatar-service/  Serviço RunPod Serverless (MuseTalk + F5-TTS) — gera o avatar a partir do vídeo
+└── app/  App Expo (React Native + Web) — tela de e-mail e upload de vídeo
 ```
 
-(`backend/` e `infra/` — o backend original em Azure Functions e os
-scripts de criação da Storage Account — foram movidos pra
-`archive/azure-poc/`. O backend atual é `backend-aws/`, na raiz do repo.)
+Os demais componentes viraram diretórios próprios na raiz do repositório:
+`backend-aws/` (backend atual), `avatar-service-aws/` (geração de avatar,
+rodando na GPU da AWS), `infra-aws-app/` e `infra-aws-dev/` (infra
+Terraform). O backend e os scripts originais do Azure ficaram arquivados
+em `archive/azure-poc/`.
 
 ### Por que um backend, mesmo em uma POC?
 

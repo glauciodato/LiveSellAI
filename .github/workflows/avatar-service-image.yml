@@ -11,7 +11,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "poc-v1/avatar-service/**"
+      - "avatar-service-aws/**"
       - ".github/workflows/avatar-service-image.yml"
   workflow_dispatch: {}
 
@@ -67,8 +67,8 @@ jobs:
       - name: Build e push
         uses: docker/build-push-action@v5
         with:
-          context: poc-v1/avatar-service
-          file: poc-v1/avatar-service/Dockerfile
+          context: avatar-service-aws
+          file: avatar-service-aws/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
