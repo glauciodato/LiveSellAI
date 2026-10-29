@@ -2,7 +2,7 @@
   "name": "livesellai-backend-aws",
   "version": "1.0.0",
   "private": true,
-  "description": "Backend do LiveSellAI rodando na AWS (ECS Fargate) -- Express.js, RDS Postgres, S3. Equivalente ao poc-v1/backend (Azure Functions), mas pra AWS.",
+  "description": "Backend do LiveSellAI rodando na AWS (ECS Fargate) -- Express.js, RDS Postgres, S3. Equivalente ao antigo backend em Azure Functions (ver archive/azure-poc/backend), mas pra AWS.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

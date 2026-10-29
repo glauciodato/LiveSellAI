@@ -146,8 +146,10 @@ serverless nativo do RunPod):
    deixar o RunPod buildar
 3. Configure um **Network Volume** (30–50GB) para cachear os pesos dos modelos
 4. Configure `RUNPOD_API_KEY` e `RUNPOD_ENDPOINT_ID` em
-   `poc-v1/backend/local.settings.json` — o backend já tem os endpoints
-   `generate-avatar` e `avatar-status` prontos para orquestrar isso
+   `archive/azure-poc/backend/local.settings.json` — o backend original em
+   Azure Functions tinha os endpoints `generate-avatar` e `avatar-status`
+   prontos para orquestrar isso (não portados pro `backend-aws/` atual,
+   que gera o avatar rodando `handler.py` direto na instância GPU)
 
 ## Limitações conhecidas desta POC
 

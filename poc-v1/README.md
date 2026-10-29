@@ -1,18 +1,30 @@
 # LiveSellAI — POC v1
 
 Primeira versão (prova de conceito) do LiveSellAI: acesso por e-mail
-(estrutura multi-tenant simplificada) e upload de vídeo para o Azure Blob
-Storage, rodando a partir do mesmo código em Web, iOS e Android.
+(estrutura multi-tenant simplificada) e upload de vídeo, rodando a partir
+do mesmo código em Web, iOS e Android.
+
+> **Status (29/10/2026):** a POC rodava originalmente na Azure (descrito
+> neste README). Em 29/10/2026 o backend e o armazenamento de vídeos
+> foram migrados pra AWS — ver `backend-aws/` e `infra-aws-app/` na raiz
+> do repositório. Os recursos do Azure (Function App, Postgres, Blob
+> Storage, Key Vault, Static Web App) foram desligados; o código e os
+> scripts específicos do Azure ficaram arquivados em `archive/azure-poc/`
+> como referência histórica. O restante deste documento descreve a
+> arquitetura original (Azure) — ainda válido pra entender o `app/` e o
+> `avatar-service/`, que continuam em uso.
 
 ## Estrutura
 
 ```
 poc-v1/
 ├── app/             App Expo (React Native + Web) — tela de e-mail e upload de vídeo
-├── backend/         Azure Function leve — gera SAS tokens e orquestra a geração do avatar
-├── avatar-service/  Serviço RunPod Serverless (MuseTalk + F5-TTS) — gera o avatar a partir do vídeo
-└── infra/           Scripts para criar a Storage Account/container no Azure
+└── avatar-service/  Serviço RunPod Serverless (MuseTalk + F5-TTS) — gera o avatar a partir do vídeo
 ```
+
+(`backend/` e `infra/` — o backend original em Azure Functions e os
+scripts de criação da Storage Account — foram movidos pra
+`archive/azure-poc/`. O backend atual é `backend-aws/`, na raiz do repo.)
 
 ### Por que um backend, mesmo em uma POC?
 
@@ -76,10 +88,14 @@ retorna:
 }
 ```
 
-### Backend implantado no Azure (produção da POC)
+### Backend implantado no Azure (descontinuado em 29/10/2026)
 
-O backend também está implantado de verdade, numa Function App real (plano
-**Flex Consumption**): **`https://livesellai-poc-backend.azurewebsites.net/api`**.
+> Esta seção descreve a arquitetura original, hoje desligada. O backend em
+> produção é o `backend-aws/` (ECS Fargate) — ver `infra-aws-app/`.
+
+O backend também estava implantado de verdade, numa Function App real (plano
+**Flex Consumption**): `https://livesellai-poc-backend.azurewebsites.net/api`
+(desligada).
 
 O deploy é automático via GitHub Actions
 (`.github/workflows/backend-deploy.yml`), a cada push que muda
