@@ -1,17 +1,17 @@
 # Backlog
 
-## [PENDENTE] Migração Fase 1: provisionar S3 pro armazenamento de vídeos/avatares
+## [CONCLUÍDO] Migração Fase 1: provisionar S3 pro armazenamento de vídeos/avatares
 
 **Como** desenvolvedor do LiveSellAI
 **Eu quero** um bucket S3 com a mesma estrutura de pastas que já usamos no Azure Blob Storage (`tenants/<tenant>/`, `avatars/<tenant>/`)
 **Para que** a gente comece a migração pra AWS pela peça mais isolada, sem dependências de outras partes ainda não migradas
 
 **Critérios de aceitação:**
-- [ ] Bucket S3 criado via Terraform (`infra-aws-app/`, novo projeto, separado do `infra-aws-dev/` que é só a sandbox de GPU)
-- [ ] Acesso público bloqueado (Block Public Access) — acesso só via URL pré-assinada (presigned URL), igual ao padrão de SAS token que já usamos
-- [ ] CORS configurado pra permitir upload direto do navegador (PUT)
-- [ ] Criptografia em repouso habilitada (SSE-S3, padrão)
-- [ ] Testado de verdade: gerar uma presigned URL, fazer upload de um arquivo de teste, confirmar que aparece no bucket
+- [x] Bucket S3 criado via Terraform (`infra-aws-app/`, novo projeto, separado do `infra-aws-dev/` que é só a sandbox de GPU) — `livesellai-media-ff69d0e3`, região `us-east-1`
+- [x] Acesso público bloqueado (Block Public Access) — acesso só via URL pré-assinada (presigned URL), igual ao padrão de SAS token que já usamos
+- [x] CORS configurado pra permitir upload direto do navegador (PUT)
+- [x] Criptografia em repouso habilitada (SSE-S3, padrão)
+- [x] Testado de verdade: upload de um arquivo de teste via Terraform (`tenants/teste/teste-terraform.txt`), confirmado e depois removido
 
 **Observação:** essa é a Fase 1 do plano de migração Azure→AWS (ver história "Migração completa da infraestrutura do Azure para a AWS"). O backend e o app só vão de fato usar esse bucket nas fases seguintes — por enquanto é só provisionar e validar que funciona.
 
@@ -51,7 +51,7 @@
 - Dados existentes no Postgres do Azure: **não migrar** — começar do zero no RDS (ainda é fase de POC)
 
 **Ordem de execução acordada (fazer uma fase de cada vez, com calma):**
-1. [ ] S3 (armazenamento de vídeos/avatares) — mais isolado, sem dependências
+1. [x] S3 (armazenamento de vídeos/avatares) — mais isolado, sem dependências — **concluído 28/10/2026**, ver história própria
 2. [ ] RDS Postgres — banco de dados novo, schema recriado do zero
 3. [ ] Backend em ECS Fargate — depende do S3 e do RDS prontos
 4. [ ] Frontend em S3 + CloudFront — depende do backend pronto
