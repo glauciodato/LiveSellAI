@@ -57,9 +57,16 @@ variable "db_username" {
 }
 
 variable "github_repo" {
-  description = "owner/repo do GitHub autorizado a assumir o papel de deploy via OIDC (GitHub Actions)."
+  description = <<-EOT
+    Identificador do repositório GitHub autorizado a assumir o papel de deploy
+    via OIDC, no formato exato que o GitHub usa no claim "sub" do token --
+    "owner@ownerId/repo@repoId" (inclui IDs numéricos imutáveis, não só os
+    nomes, pra resistir a sequestro de confiança em caso de rename/transferência
+    de repo). Descoberto via um passo de debug no workflow que imprimia o
+    claim "sub" real -- o formato simples "owner/repo" NÃO bate mais.
+  EOT
   type        = string
-  default     = "glauciodato/LiveSellAI"
+  default     = "glauciodato@12037247/LiveSellAI@1366580158"
 }
 
 variable "backend_image_tag" {
