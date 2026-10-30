@@ -1,5 +1,25 @@
 # Backlog
 
+## [CONCLUÍDO] Sidebar persistente e recolhível + seletor de idioma (visual)
+
+**Como** usuário do LiveSellAI
+**Eu quero** um menu lateral fixo, no padrão de SaaS (tipo Notion/Linear), em vez de um dropdown que abre/fecha
+**Para que** a navegação fique sempre visível e com cara de plataforma de verdade
+
+**Critérios de aceitação:**
+- [x] Sidebar persistente no lado esquerdo em telas largas (desktop/Web), com botão pra recolher (mostra só ícones) e expandir (ícones + texto)
+- [x] Em telas estreitas (mobile), vira uma gaveta (drawer) acionada por um botão de menu — sidebar fixa ocuparia espaço demais
+- [x] Conteúdo da sidebar: perfil (foto/iniciais + nome + e-mail), navegação (Home, Alterar senha), Sair — mesmo conteúdo do menu anterior, só muda o formato
+- [x] Seletor de idioma visível na sidebar (ex: "Português (Brasil)") — **só visual por enquanto**, sem troca de idioma de verdade (app não tem infraestrutura de tradução ainda); ao clicar, mostra "Português (Brasil) ✓" + "Mais idiomas em breve" (sem clique morto, mas honesto sobre o que existe)
+- [x] Substitui o `AppHeader`/`AppMenu` da história anterior (removidos, não fica código morto)
+- [x] Testado de verdade: build Web real + Playwright em mobile (drawer) e desktop (sidebar fixa, expandida e recolhida), navegação funcionando, sem erros de console
+
+**Observação:** evolução da história "Menu da plataforma" depois que o usuário comparou com a referência visual da Syntopia (sidebar fixa, não dropdown). Troca de idioma de verdade (i18n completo) fica registrada como item futuro, não nesta história. Durante a implementação, `@expo/vector-icons` (ícones da sidebar) quase dobrou o tamanho do bundle Web (518KB → 989KB) por empacotar todas as famílias de ícone via o import "barrel" (`import { Ionicons } from '@expo/vector-icons'`) — corrigido importando direto (`import Ionicons from '@expo/vector-icons/Ionicons'`), voltando pra 561KB.
+
+**Data:** 30/10/2026
+
+---
+
 ## [CONCLUÍDO] Menu da plataforma + foto de perfil do Google
 
 **Como** usuário do LiveSellAI

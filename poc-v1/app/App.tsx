@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import AppShell from './src/components/AppShell';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import HomeScreen, { type OnboardingStep } from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
@@ -49,8 +50,21 @@ export default function App() {
 
   function renderContent() {
     if (tenant) {
+      const handleLogout = async () => {
+        await clearTenant();
+        setTenant(null);
+        setAuthScreen('login');
+        setMainScreen('home');
+        setChangingPassword(false);
+      };
+      const goHome = () => {
+        setChangingPassword(false);
+        setMainScreen('home');
+      };
+
+      let screenContent;
       if (changingPassword) {
-        return (
+        screenContent = (
           <ChangePasswordScreen
             tenantEmail={tenant.email}
             hasPassword={tenant.hasPassword}
@@ -62,44 +76,24 @@ export default function App() {
             onCancel={() => setChangingPassword(false)}
           />
         );
-      }
-
-      const handleLogout = async () => {
-        await clearTenant();
-        setTenant(null);
-        setAuthScreen('login');
-        setMainScreen('home');
-      };
-
-      if (mainScreen === 'avatar') {
-        return (
-          <UploadScreen
-            tenant={tenant}
-            onLogout={handleLogout}
-            onChangePassword={() => setChangingPassword(true)}
-            onBackToHome={() => setMainScreen('home')}
-          />
-        );
-      }
-
-      if (mainScreen === 'voice') {
-        return (
-          <VoiceCloneInfoScreen
-            tenant={tenant}
-            onBack={() => setMainScreen('home')}
-            onChangePassword={() => setChangingPassword(true)}
-            onLogout={handleLogout}
-          />
-        );
+      } else if (mainScreen === 'avatar') {
+        screenContent = <UploadScreen tenant={tenant} />;
+      } else if (mainScreen === 'voice') {
+        screenContent = <VoiceCloneInfoScreen />;
+      } else {
+        screenContent = <HomeScreen tenant={tenant} onNavigateToStep={setMainScreen} />;
       }
 
       return (
-        <HomeScreen
+        <AppShell
           tenant={tenant}
-          onNavigateToStep={setMainScreen}
+          activeScreen={changingPassword ? 'password' : mainScreen}
+          onNavigateHome={goHome}
           onChangePassword={() => setChangingPassword(true)}
           onLogout={handleLogout}
-        />
+        >
+          {screenContent}
+        </AppShell>
       );
     }
 

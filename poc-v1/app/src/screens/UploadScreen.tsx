@@ -19,15 +19,11 @@ import {
   type VideoListItem,
 } from '../services/uploadService';
 import GradientButton from '../components/GradientButton';
-import AppHeader from '../components/AppHeader';
 import { colors, fonts } from '../theme';
 import type { Tenant } from '../types/tenant';
 
 interface UploadScreenProps {
   tenant: Tenant;
-  onLogout: () => void;
-  onChangePassword: () => void;
-  onBackToHome: () => void;
 }
 
 interface SelectedVideo {
@@ -72,12 +68,7 @@ function formatVideoSize(bytes: number | null): string {
  * ver o avatar já gerado pra esse tenant (se algum já tiver sido gerado
  * — hoje a geração em si ainda é disparada manualmente, fora do app).
  */
-export default function UploadScreen({
-  tenant,
-  onLogout,
-  onChangePassword,
-  onBackToHome,
-}: UploadScreenProps) {
+export default function UploadScreen({ tenant }: UploadScreenProps) {
   const tenantEmail = tenant.email;
   const [video, setVideo] = useState<SelectedVideo | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
@@ -230,14 +221,6 @@ export default function UploadScreen({
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <AppHeader
-        tenant={tenant}
-        onBack={onBackToHome}
-        onNavigateHome={onBackToHome}
-        onChangePassword={onChangePassword}
-        onLogout={onLogout}
-      />
-
       <Text style={styles.tenant}>{tenantEmail}</Text>
 
       <View style={styles.card}>

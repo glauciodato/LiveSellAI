@@ -1,15 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, gradientLive } from '../theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import AppHeader from '../components/AppHeader';
-import type { Tenant } from '../types/tenant';
-
-interface VoiceCloneInfoScreenProps {
-  tenant: Tenant;
-  onBack: () => void;
-  onChangePassword: () => void;
-  onLogout: () => void;
-}
 
 /**
  * Passo 2 do checklist (Clonar uma voz) -- hoje é só informativo: a
@@ -17,22 +8,9 @@ interface VoiceCloneInfoScreenProps {
  * 1 (ver avatar-service-aws/handler.py). Um upload de áudio dedicado, pra
  * melhor qualidade, é um passo futuro (ver ROADMAP.md).
  */
-export default function VoiceCloneInfoScreen({
-  tenant,
-  onBack,
-  onChangePassword,
-  onLogout,
-}: VoiceCloneInfoScreenProps) {
+export default function VoiceCloneInfoScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <AppHeader
-        tenant={tenant}
-        onBack={onBack}
-        onNavigateHome={onBack}
-        onChangePassword={onChangePassword}
-        onLogout={onLogout}
-      />
-
       <View style={styles.card}>
         <LinearGradient colors={gradientLive} style={styles.badge}>
           <Text style={styles.badgeText}>🎙️</Text>

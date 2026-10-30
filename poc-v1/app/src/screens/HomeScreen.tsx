@@ -1,6 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import ChecklistItem from '../components/ChecklistItem';
-import AppHeader from '../components/AppHeader';
 import { colors, fonts } from '../theme';
 import type { Tenant } from '../types/tenant';
 
@@ -9,8 +8,6 @@ export type OnboardingStep = 'avatar' | 'voice';
 interface HomeScreenProps {
   tenant: Tenant;
   onNavigateToStep: (step: OnboardingStep) => void;
-  onChangePassword: () => void;
-  onLogout: () => void;
 }
 
 const STEPS: Array<{
@@ -33,21 +30,9 @@ const STEPS: Array<{
  * (ver história "Home com checklist de onboarding" no BACKLOG.md); os
  * demais aparecem como "Em breve".
  */
-export default function HomeScreen({
-  tenant,
-  onNavigateToStep,
-  onChangePassword,
-  onLogout,
-}: HomeScreenProps) {
+export default function HomeScreen({ tenant, onNavigateToStep }: HomeScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <AppHeader
-        tenant={tenant}
-        onNavigateHome={() => {}}
-        onChangePassword={onChangePassword}
-        onLogout={onLogout}
-      />
-
       <Text style={styles.greeting}>Olá, {tenant.name.split(' ')[0]} 👋</Text>
       <Text style={styles.subtitle}>{tenant.email}</Text>
 
