@@ -1,5 +1,24 @@
 # Backlog
 
+## [PENDENTE] Domínio customizado pro frontend (app-dev.sellai.live)
+
+**Como** desenvolvedor do LiveSellAI
+**Eu quero** acessar o frontend por `https://app-dev.sellai.live` em vez da URL padrão do CloudFront
+**Para que** a aplicação tenha um endereço com a marca da empresa, mais fácil de divulgar/lembrar
+
+**Critérios de aceitação:**
+- [ ] Certificado ACM (us-east-1, exigência do CloudFront) emitido pra `app-dev.sellai.live`, validado via DNS
+- [ ] Registro de validação do certificado adicionado no DNS do Hostinger (manual, fora do Terraform — Hostinger não tem integração automática)
+- [ ] Distribuição CloudFront do frontend atualizada com o novo domínio (`aliases`) e o certificado novo (em vez do certificado padrão do CloudFront)
+- [ ] Registro CNAME `app-dev` no Hostinger apontando pro domínio do CloudFront
+- [ ] Testado de verdade: `https://app-dev.sellai.live` carrega a aplicação com HTTPS válido
+
+**Observação:** domínio `sellai.live` já registrado e gerenciado no Hostinger. Processo em duas etapas por causa da validação do certificado (não dá pra automatizar pelo Terraform já que o DNS não é Route53) — cria o certificado, usuário adiciona o registro de validação no Hostinger, só depois aplica o resto.
+
+**Data:** 29/10/2026
+
+---
+
 ## [CONCLUÍDO] Migração Fase 6: desligar os recursos do Azure
 
 **Como** desenvolvedor do LiveSellAI
