@@ -4,14 +4,17 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
+import HomeScreen, { type OnboardingStep } from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import UploadScreen from './src/screens/UploadScreen';
+import VoiceCloneInfoScreen from './src/screens/VoiceCloneInfoScreen';
 import { clearTenant, getStoredTenant, saveTenant } from './src/services/tenantStorage';
 import type { Tenant } from './src/types/tenant';
 import { colors, fontsToLoad } from './src/theme';
 
 type AuthScreen = 'login' | 'signup';
+type MainScreen = 'home' | OnboardingStep;
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,6 +22,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
+  const [mainScreen, setMainScreen] = useState<MainScreen>('home');
   const [changingPassword, setChangingPassword] = useState(false);
   const [fontsLoaded, fontsError] = useFonts(fontsToLoad);
 
@@ -60,15 +64,35 @@ export default function App() {
         );
       }
 
+      const handleLogout = async () => {
+        await clearTenant();
+        setTenant(null);
+        setAuthScreen('login');
+        setMainScreen('home');
+      };
+
+      if (mainScreen === 'avatar') {
+        return (
+          <UploadScreen
+            tenantEmail={tenant.email}
+            onLogout={handleLogout}
+            onChangePassword={() => setChangingPassword(true)}
+            onBackToHome={() => setMainScreen('home')}
+          />
+        );
+      }
+
+      if (mainScreen === 'voice') {
+        return <VoiceCloneInfoScreen onBack={() => setMainScreen('home')} />;
+      }
+
       return (
-        <UploadScreen
+        <HomeScreen
+          tenantName={tenant.name}
           tenantEmail={tenant.email}
-          onLogout={async () => {
-            await clearTenant();
-            setTenant(null);
-            setAuthScreen('login');
-          }}
+          onNavigateToStep={setMainScreen}
           onChangePassword={() => setChangingPassword(true)}
+          onLogout={handleLogout}
         />
       );
     }

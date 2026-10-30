@@ -1,5 +1,26 @@
 # Backlog
 
+## [CONCLUÍDO] Home com checklist de onboarding (UI/UX, sem automação ainda)
+
+**Como** usuário do LiveSellAI
+**Eu quero** uma tela inicial com um checklist guiado dos passos pra colocar meu avatar no ar
+**Para que** eu entenda o fluxo completo e não me perca, com cara de produto SaaS de verdade
+
+**Critérios de aceitação:**
+- [x] `HomeScreen` nova, com visual SellAI (mesmo padrão de cores/fontes das telas de auth), vira a tela principal depois do login
+- [x] Checklist de 7 passos adaptados do fluxo da Syntopia pro nosso modelo (plataforma própria, não injeção em live de terceiro): Clonar um avatar, Clonar uma voz, Criar o script, Conectar um LLM, Testar a transmissão, Entrar ao vivo, Compartilhar o link da live
+- [x] Passos 1 e 2 clicáveis e levam a uma tela de verdade; passos 3-7 aparecem visualmente desabilitados/"em breve" (ainda não têm tela)
+- [x] Passo 1 (Clonar avatar) reaproveita o fluxo de upload que já funciona (`UploadScreen`/S3), com navegação de volta pro Home — tela também redesenhada com os componentes do tema (estava com o visual antigo, quebrava a identidade visual recém-criada)
+- [x] Passo 2 (Clonar voz) é uma tela informativa (a clonagem já acontece automaticamente a partir do vídeo do passo 1 — não precisa de upload de áudio separado)
+- [x] **Sem automação nova nesta história** — não dispara geração de avatar de verdade (isso é outra história, de infra, mais pra frente)
+- [x] Testado de verdade: build Web real + Playwright, navegação entre Home → passo 1 → voltar → passo 2 → voltar, sem erros de console
+
+**Observação:** inspirado no manual da Syntopia (ver `ROADMAP.md`), adaptado porque o fluxo deles depende de injetar o avatar numa live de terceiro (Douyin/Taobao) via câmera/microfone virtual — a gente transmite pela própria plataforma, então os passos 5 e 7 têm significado diferente (testar a transmissão própria, compartilhar nosso link, em vez de configurar áudio virtual/colar link de terceiro). Escopo cresceu um pouco durante a execução: ao navegar pro passo 1 (`UploadScreen`), o visual antigo (sem identidade da marca) destoava muito do Home novo e tinha até um bug de layout (cabeçalho sobrepondo texto) — redesenhada também, sem alterar nenhuma lógica/handler.
+
+**Data:** 30/10/2026
+
+---
+
 ## [CONCLUÍDO] Redesign da tela de alterar senha + suporte a contas sem senha (Google)
 
 **Como** usuário do LiveSellAI

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -18,11 +19,14 @@ import {
   uploadVideoToBlob,
   type VideoListItem,
 } from '../services/uploadService';
+import GradientButton from '../components/GradientButton';
+import { colors, fonts } from '../theme';
 
 interface UploadScreenProps {
   tenantEmail: string;
   onLogout: () => void;
   onChangePassword: () => void;
+  onBackToHome?: () => void;
 }
 
 interface SelectedVideo {
@@ -67,7 +71,12 @@ function formatVideoSize(bytes: number | null): string {
  * ver o avatar já gerado pra esse tenant (se algum já tiver sido gerado
  * — hoje a geração em si ainda é disparada manualmente, fora do app).
  */
-export default function UploadScreen({ tenantEmail, onLogout, onChangePassword }: UploadScreenProps) {
+export default function UploadScreen({
+  tenantEmail,
+  onLogout,
+  onChangePassword,
+  onBackToHome,
+}: UploadScreenProps) {
   const [video, setVideo] = useState<SelectedVideo | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -220,134 +229,143 @@ export default function UploadScreen({ tenantEmail, onLogout, onChangePassword }
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.header}>
-        <Text style={styles.tenant}>{tenantEmail}</Text>
+        <Image
+          source={require('../../assets/brand/sellai-logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={onChangePassword}>
-            <Text style={styles.changePassword}>Alterar senha</Text>
+            <Text style={styles.headerLink}>Alterar senha</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onLogout}>
-            <Text style={styles.logout}>Trocar conta</Text>
+            <Text style={styles.headerLink}>Trocar conta</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <Text style={styles.title}>Enviar vídeo</Text>
-
-      <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.secondaryButton} onPress={selectFromLibrary}>
-          <Text style={styles.secondaryButtonText}>Selecionar vídeo</Text>
+      {onBackToHome ? (
+        <TouchableOpacity onPress={onBackToHome} style={styles.backLink}>
+          <Text style={styles.backLinkText}>← Voltar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryButton} onPress={recordVideo}>
-          <Text style={styles.secondaryButtonText}>Gravar vídeo</Text>
-        </TouchableOpacity>
-      </View>
+      ) : null}
 
-      {video ? (
-        <View style={styles.videoInfo}>
-          <Text style={styles.videoInfoText}>Arquivo: {video.fileName}</Text>
-          <Text style={styles.videoInfoText}>Tipo: {video.contentType}</Text>
-          {video.durationMs ? (
-            <Text style={styles.videoInfoText}>
-              Duração: {Math.round(video.durationMs / 1000)}s
-            </Text>
-          ) : null}
+      <Text style={styles.tenant}>{tenantEmail}</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.title}>Enviar vídeo</Text>
+
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.secondaryButton} onPress={selectFromLibrary}>
+            <Text style={styles.secondaryButtonText}>Selecionar vídeo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={recordVideo}>
+            <Text style={styles.secondaryButtonText}>Gravar vídeo</Text>
+          </TouchableOpacity>
         </View>
-      ) : (
-        <Text style={styles.placeholder}>Nenhum vídeo selecionado ainda.</Text>
-      )}
 
-      <TouchableOpacity
-        style={[styles.button, (!video || uploading) && styles.buttonDisabled]}
-        onPress={handleUpload}
-        disabled={!video || uploading}
-      >
-        {uploading ? (
-          <ActivityIndicator color="#fff" />
+        {video ? (
+          <View style={styles.videoInfo}>
+            <Text style={styles.videoInfoText}>Arquivo: {video.fileName}</Text>
+            <Text style={styles.videoInfoText}>Tipo: {video.contentType}</Text>
+            {video.durationMs ? (
+              <Text style={styles.videoInfoText}>
+                Duração: {Math.round(video.durationMs / 1000)}s
+              </Text>
+            ) : null}
+          </View>
         ) : (
-          <Text style={styles.buttonText}>Enviar para o Azure Blob Storage</Text>
+          <Text style={styles.placeholder}>Nenhum vídeo selecionado ainda.</Text>
         )}
-      </TouchableOpacity>
 
-      {status === 'success' && message ? (
-        <Text style={styles.success}>Upload concluído! Blob: {message}</Text>
-      ) : null}
-      {status === 'error' && message ? <Text style={styles.error}>{message}</Text> : null}
+        <GradientButton
+          title="Enviar vídeo"
+          onPress={handleUpload}
+          loading={uploading}
+          disabled={!video}
+        />
 
-      <View style={styles.divider} />
-
-      <View style={styles.avatarHeader}>
-        <Text style={styles.title}>Meus vídeos enviados</Text>
-        <TouchableOpacity onPress={loadVideos} disabled={videosStatus === 'loading'}>
-          <Text style={styles.refreshLink}>Atualizar</Text>
-        </TouchableOpacity>
+        {status === 'success' && message ? (
+          <Text style={styles.success}>Upload concluído!</Text>
+        ) : null}
+        {status === 'error' && message ? <Text style={styles.error}>{message}</Text> : null}
       </View>
 
-      {videosStatus === 'loading' ? (
-        <ActivityIndicator style={styles.avatarState} />
-      ) : videosStatus === 'error' ? (
-        <Text style={styles.error}>{videosError}</Text>
-      ) : videos.length === 0 ? (
-        <Text style={styles.placeholder}>Nenhum vídeo enviado ainda.</Text>
-      ) : (
-        <View style={styles.videoList}>
-          {videos.map((item) => (
-            <TouchableOpacity
-              key={item.blobName}
-              style={[
-                styles.videoListItem,
-                selectedVideo?.blobName === item.blobName && styles.videoListItemSelected,
-              ]}
-              onPress={() => setSelectedVideo(item)}
-            >
-              <Text style={styles.videoListItemName} numberOfLines={1}>
-                {formatVideoLabel(item.blobName)}
-              </Text>
-              <Text style={styles.videoListItemMeta}>
-                {formatVideoDate(item.lastModified)}
-                {item.size != null ? ` · ${formatVideoSize(item.size)}` : ''}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.title}>Meus vídeos enviados</Text>
+          <TouchableOpacity onPress={loadVideos} disabled={videosStatus === 'loading'}>
+            <Text style={styles.refreshLink}>Atualizar</Text>
+          </TouchableOpacity>
         </View>
-      )}
 
-      {selectedVideo ? (
-        <VideoView
-          key={selectedVideo.url}
-          player={selectedVideoPlayer}
-          style={styles.avatarVideo}
-          nativeControls
-          contentFit="contain"
-        />
-      ) : null}
+        {videosStatus === 'loading' ? (
+          <ActivityIndicator style={styles.avatarState} />
+        ) : videosStatus === 'error' ? (
+          <Text style={styles.error}>{videosError}</Text>
+        ) : videos.length === 0 ? (
+          <Text style={styles.placeholder}>Nenhum vídeo enviado ainda.</Text>
+        ) : (
+          <View style={styles.videoList}>
+            {videos.map((item) => (
+              <TouchableOpacity
+                key={item.blobName}
+                style={[
+                  styles.videoListItem,
+                  selectedVideo?.blobName === item.blobName && styles.videoListItemSelected,
+                ]}
+                onPress={() => setSelectedVideo(item)}
+              >
+                <Text style={styles.videoListItemName} numberOfLines={1}>
+                  {formatVideoLabel(item.blobName)}
+                </Text>
+                <Text style={styles.videoListItemMeta}>
+                  {formatVideoDate(item.lastModified)}
+                  {item.size != null ? ` · ${formatVideoSize(item.size)}` : ''}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-      <View style={styles.divider} />
-
-      <View style={styles.avatarHeader}>
-        <Text style={styles.title}>Meu avatar</Text>
-        <TouchableOpacity onPress={loadAvatar} disabled={avatarStatus === 'loading'}>
-          <Text style={styles.refreshLink}>Atualizar</Text>
-        </TouchableOpacity>
+        {selectedVideo ? (
+          <VideoView
+            key={selectedVideo.url}
+            player={selectedVideoPlayer}
+            style={styles.avatarVideo}
+            nativeControls
+            contentFit="contain"
+          />
+        ) : null}
       </View>
 
-      {avatarStatus === 'loading' ? (
-        <ActivityIndicator style={styles.avatarState} />
-      ) : avatarStatus === 'found' && avatarUrl ? (
-        <VideoView
-          key={avatarUrl}
-          player={avatarPlayer}
-          style={styles.avatarVideo}
-          nativeControls
-          contentFit="contain"
-        />
-      ) : avatarStatus === 'not-found' ? (
-        <Text style={styles.placeholder}>
-          Nenhum avatar gerado ainda pra essa conta. Envie um vídeo e peça pra gerar o avatar a
-          partir dele.
-        </Text>
-      ) : (
-        <Text style={styles.error}>{avatarError}</Text>
-      )}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.title}>Meu avatar</Text>
+          <TouchableOpacity onPress={loadAvatar} disabled={avatarStatus === 'loading'}>
+            <Text style={styles.refreshLink}>Atualizar</Text>
+          </TouchableOpacity>
+        </View>
+
+        {avatarStatus === 'loading' ? (
+          <ActivityIndicator style={styles.avatarState} />
+        ) : avatarStatus === 'found' && avatarUrl ? (
+          <VideoView
+            key={avatarUrl}
+            player={avatarPlayer}
+            style={styles.avatarVideo}
+            nativeControls
+            contentFit="contain"
+          />
+        ) : avatarStatus === 'not-found' ? (
+          <Text style={styles.placeholder}>
+            Nenhum avatar gerado ainda pra essa conta. Envie um vídeo e peça pra gerar o avatar a
+            partir dele.
+          </Text>
+        ) : (
+          <Text style={styles.error}>{avatarError}</Text>
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -355,146 +373,160 @@ export default function UploadScreen({ tenantEmail, onLogout, onChangePassword }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.soft,
   },
   content: {
-    paddingHorizontal: 24,
-    paddingTop: 64,
+    paddingHorizontal: 20,
+    paddingTop: 24,
     paddingBottom: 48,
+    maxWidth: 560,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 32,
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  tenant: {
-    fontSize: 14,
-    color: '#555',
+  logo: {
+    width: 128,
+    height: 27,
   },
   headerActions: {
     flexDirection: 'row',
     gap: 16,
   },
-  changePassword: {
+  headerLink: {
+    fontSize: 13,
+    fontFamily: fonts.bodyMedium,
+    color: colors.muted,
+  },
+  backLink: {
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  backLinkText: {
     fontSize: 14,
-    color: '#111',
-    fontWeight: '600',
+    fontFamily: fonts.bodyMedium,
+    color: colors.muted,
   },
-  logout: {
-    fontSize: 14,
-    color: '#c0392b',
-    fontWeight: '600',
+  tenant: {
+    fontSize: 13,
+    fontFamily: fonts.bodyRegular,
+    color: colors.muted,
+    marginBottom: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 24,
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: colors.navy,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.06,
+    shadowRadius: 32,
+    elevation: 3,
   },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  secondaryButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#111',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#111',
-    fontWeight: '600',
-  },
-  videoInfo: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-  },
-  videoInfoText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  placeholder: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 24,
-  },
-  button: {
-    backgroundColor: '#111',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  success: {
-    color: '#1e8449',
-    marginTop: 16,
-  },
-  error: {
-    color: '#c0392b',
-    marginTop: 16,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#eee',
-    marginVertical: 32,
-  },
-  avatarHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  refreshLink: {
+  title: {
+    fontSize: 18,
+    fontFamily: fonts.displayBold,
+    color: colors.navy,
+    marginBottom: 16,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  secondaryButton: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    color: colors.navy,
+    fontFamily: fonts.bodySemiBold,
     fontSize: 14,
-    color: '#111',
-    fontWeight: '600',
-    marginBottom: 24,
+  },
+  videoInfo: {
+    backgroundColor: colors.soft,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  videoInfoText: {
+    fontSize: 14,
+    fontFamily: fonts.bodyRegular,
+    color: colors.navy,
+  },
+  placeholder: {
+    fontSize: 14,
+    fontFamily: fonts.bodyRegular,
+    color: colors.muted,
+    marginBottom: 16,
+  },
+  success: {
+    color: colors.electric,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    marginTop: 14,
+  },
+  error: {
+    color: colors.destructive,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    marginTop: 14,
+  },
+  refreshLink: {
+    fontSize: 13,
+    fontFamily: fonts.bodySemiBold,
+    color: colors.electric,
+    marginBottom: 16,
   },
   avatarState: {
-    marginBottom: 24,
+    marginBottom: 8,
   },
   videoList: {
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   videoListItem: {
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   videoListItemSelected: {
-    borderColor: '#111',
-    backgroundColor: '#f5f5f5',
+    borderColor: colors.electric,
+    backgroundColor: colors.soft,
   },
   videoListItemName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.navy,
   },
   videoListItemMeta: {
     fontSize: 12,
-    color: '#888',
+    fontFamily: fonts.bodyRegular,
+    color: colors.muted,
     marginTop: 2,
   },
   avatarVideo: {
     width: '100%',
     aspectRatio: 9 / 16,
     maxHeight: 480,
-    backgroundColor: '#000',
-    borderRadius: 8,
-    marginBottom: 24,
+    backgroundColor: colors.navy,
+    borderRadius: 12,
+    marginTop: 8,
   },
 });
