@@ -1,17 +1,17 @@
 # Backlog
 
-## [PENDENTE] Redesign da tela de alterar senha + suporte a contas sem senha (Google)
+## [CONCLUÍDO] Redesign da tela de alterar senha + suporte a contas sem senha (Google)
 
 **Como** usuário do LiveSellAI
 **Eu quero** que a tela de alterar senha siga a identidade visual do app e funcione também pra quem entrou com o Google
 **Para que** eu tenha uma experiência consistente e consiga definir uma senha mesmo tendo entrado sem uma
 
 **Critérios de aceitação:**
-- [ ] `ChangePasswordScreen` redesenhada com os mesmos componentes das demais telas de auth (`AuthScreenLayout`, `AuthTextInput`, `GradientButton`)
-- [ ] Bug corrigido: contas criadas via Google (`password_hash` NULL) não conseguiam trocar/definir senha, porque a tela sempre exigia a "senha atual" e o backend sempre tentava validar contra ela
-- [ ] Backend (`POST /api/change-password`) pula a exigência de senha atual quando a conta ainda não tem nenhuma; continua exigindo normalmente quando já tem
-- [ ] Todas as respostas de autenticação (`register`, `login`, `auth/google`, `change-password`) passam a incluir `hasPassword`, pra o app saber qual variante da tela mostrar ("Alterar senha" vs. "Definir senha")
-- [ ] Testado de verdade contra o backend e RDS reais: conta sem senha definindo a primeira, depois trocando com a senha atual corretamente exigida
+- [x] `ChangePasswordScreen` redesenhada com os mesmos componentes das demais telas de auth (`AuthScreenLayout`, `AuthTextInput`, `GradientButton`)
+- [x] Bug corrigido: contas criadas via Google (`password_hash` NULL) não conseguiam trocar/definir senha, porque a tela sempre exigia a "senha atual" e o backend sempre tentava validar contra ela
+- [x] Backend (`POST /api/change-password`) pula a exigência de senha atual quando a conta ainda não tem nenhuma; continua exigindo normalmente quando já tem
+- [x] Todas as respostas de autenticação (`register`, `login`, `auth/google`, `change-password`) passam a incluir `hasPassword`, pra o app saber qual variante da tela mostrar ("Alterar senha" vs. "Definir senha")
+- [x] Testado de verdade contra o backend e RDS reais e na URL pública (`app-dev.sellai.live`): cenários de definir senha pela primeira vez, trocar com senha atual correta/errada, e as duas variantes visuais confirmadas por screenshot
 
 **Observação:** descoberta ao perguntar "e se eu alterar a senha, dá erro com esse processo de Google?" — resposta era sim, dava erro. Corrigido junto com o redesign, já que não fazia sentido estilizar uma tela quebrada.
 
