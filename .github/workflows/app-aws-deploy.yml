@@ -28,6 +28,7 @@ env:
   AWS_REGION: us-east-1
   APP_DIR: poc-v1/app
   EXPO_PUBLIC_BACKEND_URL: https://d16g9ew6niffa5.cloudfront.net/api
+  EXPO_PUBLIC_GOOGLE_CLIENT_ID: 388037318755-3h9ou8n4fcs7a0ilg3t2pj4l8d1r1d8j.apps.googleusercontent.com
 
 jobs:
   build-and-deploy:

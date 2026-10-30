@@ -7,10 +7,10 @@
 **Para que** eu não precise criar e lembrar mais uma senha
 
 **Critérios de aceitação:**
-- [ ] Cliente OAuth do Google criado no Google Cloud Console (tipo Web, origens autorizadas = domínio do frontend) — passo manual do usuário
-- [ ] Botão "Continuar com Google" nas telas de login e cadastro (Web — Google Identity Services, `accounts.google.com/gsi/client`)
-- [ ] Backend: endpoint `POST /api/auth/google` que valida o ID token do Google (`google-auth-library`, audience = client ID) e cria ou autentica a conta pelo e-mail verificado
-- [ ] Schema do RDS ajustado: `password_hash` passa a aceitar `NULL` (contas criadas só via Google não têm senha) — login/troca de senha tratam esse caso sem quebrar
+- [x] Cliente OAuth do Google criado no Google Cloud Console (tipo Web, origens autorizadas = domínio do frontend) — passo manual do usuário
+- [x] Botão "Continuar com Google" nas telas de login e cadastro (Web — Google Identity Services, `accounts.google.com/gsi/client`)
+- [x] Backend: endpoint `POST /api/auth/google` que valida o ID token do Google (`google-auth-library`, audience = client ID) e cria ou autentica a conta pelo e-mail verificado
+- [x] Schema do RDS ajustado: `password_hash` passa a aceitar `NULL` (contas criadas só via Google não têm senha) — login/troca de senha tratam esse caso sem quebrar
 - [ ] Testado de verdade: criar conta nova via Google e entrar numa conta existente via Google, contra o backend e RDS reais
 
 **Observação:** escopo só Web por enquanto (é onde a aplicação roda hoje — CloudFront). Login nativo (iOS/Android) exigiria bibliotecas e client IDs adicionais, fica pra quando/se o app for publicado nas lojas. Client ID do Google não é segredo (só o processo de obtenção é manual) — mas qualquer client secret que porventura apareça deve ser tratado como credential e nunca commitado.
