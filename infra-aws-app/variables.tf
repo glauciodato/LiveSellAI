@@ -69,6 +69,12 @@ variable "github_repo" {
   default     = "glauciodato@12037247/LiveSellAI@1366580158"
 }
 
+variable "google_client_id" {
+  description = "Client ID do OAuth do Google (tipo Web, Google Cloud Console) -- usado pelo backend pra validar o ID token e pelo frontend pra iniciar o login. Não é segredo, mas vazio quebra o login com Google (backend responde 500)."
+  type        = string
+  default     = ""
+}
+
 variable "backend_image_tag" {
   description = "Tag da imagem no ECR usada na task definition do backend. Atualizada a cada deploy pelo GitHub Actions."
   type        = string

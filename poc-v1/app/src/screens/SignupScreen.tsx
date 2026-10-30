@@ -1,14 +1,18 @@
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { isValidEmail, register } from '../services/authService';
+import { useCallback, useState } from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { isValidEmail, loginWithGoogle, register } from '../services/authService';
 import { saveTenant } from '../services/tenantStorage';
 import type { Tenant } from '../types/tenant';
 import AuthScreenLayout from '../components/AuthScreenLayout';
 import AuthTextInput from '../components/AuthTextInput';
+import AuthDivider from '../components/AuthDivider';
 import GradientButton from '../components/GradientButton';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import { colors, fonts } from '../theme';
+import { GOOGLE_CLIENT_ID } from '../config';
 
 const MIN_PASSWORD_LENGTH = 6;
+const GOOGLE_SIGN_IN_AVAILABLE = Platform.OS === 'web' && Boolean(GOOGLE_CLIENT_ID);
 
 interface SignupScreenProps {
   onSignup: (tenant: Tenant) => void;
@@ -58,6 +62,17 @@ export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScre
       setSubmitting(false);
     }
   }
+
+  const handleGoogleCredential = useCallback(async (idToken: string) => {
+    setError(null);
+    try {
+      const tenant = await loginWithGoogle(idToken);
+      await saveTenant(tenant);
+      onSignup(tenant);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro inesperado ao entrar com Google.');
+    }
+  }, [onSignup]);
 
   return (
     <AuthScreenLayout
@@ -124,6 +139,13 @@ export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScre
       <View style={styles.buttonWrapper}>
         <GradientButton title="Cadastrar" onPress={handleSubmit} loading={submitting} />
       </View>
+
+      {GOOGLE_SIGN_IN_AVAILABLE ? (
+        <>
+          <AuthDivider />
+          <GoogleSignInButton onCredential={handleGoogleCredential} />
+        </>
+      ) : null}
     </AuthScreenLayout>
   );
 }

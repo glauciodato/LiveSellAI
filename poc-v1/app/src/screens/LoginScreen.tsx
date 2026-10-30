@@ -1,12 +1,17 @@
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { isValidEmail, login } from '../services/authService';
+import { useCallback, useState } from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { isValidEmail, login, loginWithGoogle } from '../services/authService';
 import { saveTenant } from '../services/tenantStorage';
 import type { Tenant } from '../types/tenant';
 import AuthScreenLayout from '../components/AuthScreenLayout';
 import AuthTextInput from '../components/AuthTextInput';
+import AuthDivider from '../components/AuthDivider';
 import GradientButton from '../components/GradientButton';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import { colors, fonts } from '../theme';
+import { GOOGLE_CLIENT_ID } from '../config';
+
+const GOOGLE_SIGN_IN_AVAILABLE = Platform.OS === 'web' && Boolean(GOOGLE_CLIENT_ID);
 
 interface LoginScreenProps {
   onLogin: (tenant: Tenant) => void;
@@ -46,6 +51,17 @@ export default function LoginScreen({ onLogin, onNavigateToSignup }: LoginScreen
       setSubmitting(false);
     }
   }
+
+  const handleGoogleCredential = useCallback(async (idToken: string) => {
+    setError(null);
+    try {
+      const tenant = await loginWithGoogle(idToken);
+      await saveTenant(tenant);
+      onLogin(tenant);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro inesperado ao entrar com Google.');
+    }
+  }, [onLogin]);
 
   return (
     <AuthScreenLayout
@@ -90,6 +106,13 @@ export default function LoginScreen({ onLogin, onNavigateToSignup }: LoginScreen
       <View style={styles.buttonWrapper}>
         <GradientButton title="Entrar" onPress={handleSubmit} loading={submitting} />
       </View>
+
+      {GOOGLE_SIGN_IN_AVAILABLE ? (
+        <>
+          <AuthDivider />
+          <GoogleSignInButton onCredential={handleGoogleCredential} />
+        </>
+      ) : null}
     </AuthScreenLayout>
   );
 }

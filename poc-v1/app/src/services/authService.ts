@@ -64,6 +64,27 @@ export async function login({ email, password }: LoginParams): Promise<Tenant> {
   return (await response.json()) as Tenant;
 }
 
+/**
+ * Autentica (ou cria a conta, na primeira vez) usando o ID token emitido
+ * pelo Google Identity Services. Lança erro com mensagem amigável em caso
+ * de falha.
+ */
+export async function loginWithGoogle(idToken: string): Promise<Tenant> {
+  const response = await fetch(`${BACKEND_URL}/auth/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await extractErrorMessage(response, `Falha ao entrar com Google (HTTP ${response.status}).`)
+    );
+  }
+
+  return (await response.json()) as Tenant;
+}
+
 export interface ChangePasswordParams {
   email: string;
   currentPassword: string;

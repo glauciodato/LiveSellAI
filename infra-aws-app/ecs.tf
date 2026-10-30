@@ -210,6 +210,7 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "S3_BUCKET_NAME", value = aws_s3_bucket.media.id },
         { name = "UPLOAD_URL_EXPIRY_MINUTES", value = "15" },
         { name = "READ_URL_EXPIRY_MINUTES", value = "60" },
+        { name = "GOOGLE_CLIENT_ID", value = var.google_client_id },
       ]
 
       secrets = [
