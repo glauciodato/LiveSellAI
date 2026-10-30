@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import UploadScreen from './src/screens/UploadScreen';
 import { clearTenant, getStoredTenant } from './src/services/tenantStorage';
 import type { Tenant } from './src/types/tenant';
+import { colors, fontsToLoad } from './src/theme';
 
 type AuthScreen = 'login' | 'signup';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [authScreen, setAuthScreen] = useState<AuthScreen>('login');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [fontsLoaded, fontsError] = useFonts(fontsToLoad);
 
   useEffect(() => {
     getStoredTenant()
@@ -22,10 +28,16 @@ export default function App() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
+  useEffect(() => {
+    if (fontsLoaded || fontsError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontsError]);
+
+  if (loading || (!fontsLoaded && !fontsError)) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.electric} />
         <StatusBar style="auto" />
       </View>
     );
@@ -78,6 +90,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.soft,
   },
 });

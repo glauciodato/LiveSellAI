@@ -1,17 +1,19 @@
 # Backlog
 
-## [PENDENTE] Redesign da tela de login/cadastro com a identidade visual do site
+## [CONCLUÍDO] Redesign da tela de login/cadastro com a identidade visual do site
 
 **Como** usuário do LiveSellAI
 **Eu quero** que as telas de login e cadastro sigam a identidade visual oficial da marca (cores, fontes, gradiente)
 **Para que** a experiência pareça parte do mesmo produto, em vez de uma tela genérica sem estilo
 
 **Critérios de aceitação:**
-- [ ] Paleta de cores extraída do site institucional (`enter_Site Insti/src/index.css`) aplicada: Deep Navy, Electric, Violet, Magenta, Live Pink, Cyan
-- [ ] Fontes da marca (Space Grotesk pra títulos, Inter pro resto) carregadas via `@expo-google-fonts`
-- [ ] Gradiente de marca (`gradient-sellai`/`gradient-live`) aplicado em pelo menos um elemento de destaque (botão principal e/ou selo)
-- [ ] `LoginScreen` e `SignupScreen` redesenhadas de forma consistente entre si (mesmo componente de card, input e botão)
-- [ ] Testado de verdade: rodar o app localmente (Web) e conferir visualmente que o resultado está de acordo com a identidade
+- [x] Paleta de cores extraída do site institucional (`enter_Site Insti/src/index.css`) aplicada: Deep Navy, Electric, Violet, Magenta, Live Pink, Cyan — `src/theme/colors.ts`
+- [x] Fontes da marca (Space Grotesk pra títulos, Inter pro resto) carregadas via `@expo-google-fonts` — `src/theme/fonts.ts`, carregadas no `App.tsx` via `useFonts` + splash screen
+- [x] Gradiente de marca (`gradient-sellai`/`gradient-live`) aplicado em pelo menos um elemento de destaque — botão principal (`GradientButton`, gradiente violet→magenta→live)
+- [x] `LoginScreen` e `SignupScreen` redesenhadas de forma consistente entre si (mesmo componente de card, input e botão) — componentes compartilhados em `src/components/` (`AuthScreenLayout`, `AuthTextInput`, `GradientButton`), lógica de negócio inalterada
+- [x] Testado de verdade: build Web real (`expo export --platform web`) servido localmente e verificado com Playwright (screenshots em mobile/desktop, sem erros no console)
+
+**Observação:** design de referência veio de `enter_Site Insti/` (site institucional em React/Tailwind, baixado do enter.pro, não versionado neste repo) — usamos a paleta/tipografia e o logo (`assets/brand/sellai-symbol.png`) como fonte de verdade, não o código em si (stacks diferentes: React Native/Expo vs. React Web). Escopo ficou em login/cadastro (`ChangePasswordScreen`/`UploadScreen` continuam com o visual antigo, não foram pedidas).
 
 **Observação:** design de referência veio de `enter_Site Insti/` (site institucional em React/Tailwind, baixado do enter.pro) — usamos só a paleta/tipografia como fonte de verdade, não o código em si (stacks diferentes: React Native/Expo vs. React Web).
 

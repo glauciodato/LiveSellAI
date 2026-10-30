@@ -1,17 +1,12 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { isValidEmail, register } from '../services/authService';
 import { saveTenant } from '../services/tenantStorage';
 import type { Tenant } from '../types/tenant';
+import AuthScreenLayout from '../components/AuthScreenLayout';
+import AuthTextInput from '../components/AuthTextInput';
+import GradientButton from '../components/GradientButton';
+import { colors, fonts } from '../theme';
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -65,15 +60,19 @@ export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScre
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <AuthScreenLayout
+      title="Criar conta"
+      subtitle="Informe seus dados para começar a usar o LiveSellAI."
+      footer={
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Já tem conta?</Text>
+          <TouchableOpacity onPress={onNavigateToLogin}>
+            <Text style={styles.footerLink}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
+      }
     >
-      <Text style={styles.title}>Criar conta</Text>
-      <Text style={styles.subtitle}>Informe seus dados para começar a usar o LiveSellAI.</Text>
-
-      <TextInput
-        style={styles.input}
+      <AuthTextInput
         placeholder="Nome"
         autoCapitalize="words"
         value={name}
@@ -83,8 +82,7 @@ export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScre
         }}
       />
 
-      <TextInput
-        style={styles.input}
+      <AuthTextInput
         placeholder="seuemail@empresa.com"
         autoCapitalize="none"
         autoCorrect={false}
@@ -96,8 +94,7 @@ export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScre
         }}
       />
 
-      <TextInput
-        style={styles.input}
+      <AuthTextInput
         placeholder="Senha (mínimo 6 caracteres)"
         secureTextEntry
         autoCapitalize="none"
@@ -109,8 +106,7 @@ export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScre
         }}
       />
 
-      <TextInput
-        style={styles.input}
+      <AuthTextInput
         placeholder="Confirmar senha"
         secureTextEntry
         autoCapitalize="none"
@@ -125,78 +121,22 @@ export default function SignupScreen({ onSignup, onNavigateToLogin }: SignupScre
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <TouchableOpacity
-        style={[styles.button, submitting && styles.buttonDisabled]}
-        onPress={handleSubmit}
-        disabled={submitting}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Cadastrar</Text>
-        )}
-      </TouchableOpacity>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Já tem conta?</Text>
-        <TouchableOpacity onPress={onNavigateToLogin}>
-          <Text style={styles.footerLink}>Entrar</Text>
-        </TouchableOpacity>
+      <View style={styles.buttonWrapper}>
+        <GradientButton title="Cadastrar" onPress={handleSubmit} loading={submitting} />
       </View>
-    </KeyboardAvoidingView>
+    </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginTop: 12,
-  },
   error: {
-    color: '#c0392b',
-    marginTop: 8,
+    color: colors.destructive,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    marginTop: 10,
   },
-  button: {
-    marginTop: 16,
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#111',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  buttonWrapper: {
+    marginTop: 20,
   },
   footer: {
     flexDirection: 'row',
@@ -205,11 +145,12 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: '#555',
+    fontFamily: fonts.bodyRegular,
+    color: colors.muted,
   },
   footerLink: {
     fontSize: 14,
-    color: '#111',
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
+    color: colors.electric,
   },
 });
