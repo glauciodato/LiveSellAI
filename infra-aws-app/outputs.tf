@@ -94,3 +94,12 @@ output "backend_api_url" {
   description = "URL HTTPS do backend via CloudFront (usar como EXPO_PUBLIC_BACKEND_URL no deploy AWS do app, com /api no final)."
   value       = "https://${aws_cloudfront_distribution.backend_api.domain_name}"
 }
+
+output "frontend_cert_validation_record" {
+  description = "Registro DNS a criar no Hostinger pra validar o certificado do domínio customizado do frontend."
+  value = {
+    name  = tolist(aws_acm_certificate.frontend.domain_validation_options)[0].resource_record_name
+    type  = tolist(aws_acm_certificate.frontend.domain_validation_options)[0].resource_record_type
+    value = tolist(aws_acm_certificate.frontend.domain_validation_options)[0].resource_record_value
+  }
+}

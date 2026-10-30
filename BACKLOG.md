@@ -1,17 +1,36 @@
 # Backlog
 
-## [PENDENTE] Domínio customizado pro frontend (app-dev.sellai.live)
+## [PENDENTE] Redesign da tela de login/cadastro com a identidade visual do site
+
+**Como** usuário do LiveSellAI
+**Eu quero** que as telas de login e cadastro sigam a identidade visual oficial da marca (cores, fontes, gradiente)
+**Para que** a experiência pareça parte do mesmo produto, em vez de uma tela genérica sem estilo
+
+**Critérios de aceitação:**
+- [ ] Paleta de cores extraída do site institucional (`enter_Site Insti/src/index.css`) aplicada: Deep Navy, Electric, Violet, Magenta, Live Pink, Cyan
+- [ ] Fontes da marca (Space Grotesk pra títulos, Inter pro resto) carregadas via `@expo-google-fonts`
+- [ ] Gradiente de marca (`gradient-sellai`/`gradient-live`) aplicado em pelo menos um elemento de destaque (botão principal e/ou selo)
+- [ ] `LoginScreen` e `SignupScreen` redesenhadas de forma consistente entre si (mesmo componente de card, input e botão)
+- [ ] Testado de verdade: rodar o app localmente (Web) e conferir visualmente que o resultado está de acordo com a identidade
+
+**Observação:** design de referência veio de `enter_Site Insti/` (site institucional em React/Tailwind, baixado do enter.pro) — usamos só a paleta/tipografia como fonte de verdade, não o código em si (stacks diferentes: React Native/Expo vs. React Web).
+
+**Data:** 29/10/2026
+
+---
+
+## [CONCLUÍDO] Domínio customizado pro frontend (app-dev.sellai.live)
 
 **Como** desenvolvedor do LiveSellAI
 **Eu quero** acessar o frontend por `https://app-dev.sellai.live` em vez da URL padrão do CloudFront
 **Para que** a aplicação tenha um endereço com a marca da empresa, mais fácil de divulgar/lembrar
 
 **Critérios de aceitação:**
-- [ ] Certificado ACM (us-east-1, exigência do CloudFront) emitido pra `app-dev.sellai.live`, validado via DNS
-- [ ] Registro de validação do certificado adicionado no DNS do Hostinger (manual, fora do Terraform — Hostinger não tem integração automática)
-- [ ] Distribuição CloudFront do frontend atualizada com o novo domínio (`aliases`) e o certificado novo (em vez do certificado padrão do CloudFront)
-- [ ] Registro CNAME `app-dev` no Hostinger apontando pro domínio do CloudFront
-- [ ] Testado de verdade: `https://app-dev.sellai.live` carrega a aplicação com HTTPS válido
+- [x] Certificado ACM (us-east-1, exigência do CloudFront) emitido pra `app-dev.sellai.live`, validado via DNS
+- [x] Registro de validação do certificado adicionado no DNS do Hostinger (manual, fora do Terraform — Hostinger não tem integração automática)
+- [x] Distribuição CloudFront do frontend atualizada com o novo domínio (`aliases`) e o certificado novo (em vez do certificado padrão do CloudFront)
+- [x] Registro CNAME `app-dev` no Hostinger apontando pro domínio do CloudFront
+- [x] Testado de verdade: `https://app-dev.sellai.live` carrega a aplicação com HTTPS válido — confirmado via curl e pelo usuário
 
 **Observação:** domínio `sellai.live` já registrado e gerenciado no Hostinger. Processo em duas etapas por causa da validação do certificado (não dá pra automatizar pelo Terraform já que o DNS não é Route53) — cria o certificado, usuário adiciona o registro de validação no Hostinger, só depois aplica o resto.
 

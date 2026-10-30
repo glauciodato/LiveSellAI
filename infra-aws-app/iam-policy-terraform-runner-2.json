@@ -27,6 +27,19 @@
         "cloudfront:DeleteOriginAccessControl"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "AcmManagement",
+      "Effect": "Allow",
+      "Action": [
+        "acm:RequestCertificate",
+        "acm:DescribeCertificate",
+        "acm:DeleteCertificate",
+        "acm:AddTagsToCertificate",
+        "acm:ListTagsForCertificate",
+        "acm:ListCertificates"
+      ],
+      "Resource": "*"
     }
   ]
 }
