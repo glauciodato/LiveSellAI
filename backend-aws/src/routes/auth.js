@@ -41,7 +41,7 @@ router.post('/register', async (req, res) => {
       [name, email, passwordHash]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json({ ...result.rows[0], hasPassword: true });
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Já existe uma conta com esse e-mail.' });
@@ -79,7 +79,12 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
     }
 
-    res.status(200).json({ id: user.id, name: user.name, email: user.email });
+    res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      hasPassword: user.password_hash !== null,
+    });
   } catch (err) {
     console.error('Erro ao fazer login', err);
     res.status(500).json({ error: 'Erro ao fazer login.' });
@@ -89,14 +94,19 @@ router.post('/login', async (req, res) => {
 /**
  * POST /api/change-password
  * { "email": "...", "currentPassword": "...", "newPassword": "..." }
+ *
+ * Contas criadas via Google não têm senha ainda (password_hash NULL) --
+ * nesse caso não existe "senha atual" pra conferir, então o campo é
+ * ignorado e a nova senha é definida direto (primeira senha da conta).
+ * Contas que já têm senha continuam exigindo a senha atual, como sempre.
  */
 router.post('/change-password', async (req, res) => {
   const email = String(req.body?.email ?? '').trim().toLowerCase();
   const currentPassword = String(req.body?.currentPassword ?? '');
   const newPassword = String(req.body?.newPassword ?? '');
 
-  if (!email || !currentPassword) {
-    return res.status(400).json({ error: 'Informe e-mail e senha atual.' });
+  if (!email) {
+    return res.status(400).json({ error: 'Informe o e-mail.' });
   }
   if (newPassword.length < 6) {
     return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
@@ -108,15 +118,23 @@ router.post('/change-password', async (req, res) => {
       'SELECT id, name, email, password_hash FROM users WHERE email = $1',
       [email]
     );
-
     const user = result.rows[0];
-    const currentPasswordMatches = await bcrypt.compare(
-      currentPassword,
-      user?.password_hash ?? DUMMY_HASH
-    );
 
-    if (!user || !currentPasswordMatches) {
-      return res.status(401).json({ error: 'Senha atual incorreta.' });
+    if (!user) {
+      // Mantém o tempo de resposta parecido com o caso de senha errada,
+      // pra não dar pista de que o e-mail não existe.
+      await bcrypt.compare(currentPassword || 'x', DUMMY_HASH);
+      return res.status(401).json({ error: 'Não foi possível trocar a senha.' });
+    }
+
+    if (user.password_hash !== null) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Informe sua senha atual.' });
+      }
+      const currentPasswordMatches = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!currentPasswordMatches) {
+        return res.status(401).json({ error: 'Senha atual incorreta.' });
+      }
     }
 
     const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
@@ -125,7 +143,7 @@ router.post('/change-password', async (req, res) => {
       user.id,
     ]);
 
-    res.status(200).json({ id: user.id, name: user.name, email: user.email });
+    res.status(200).json({ id: user.id, name: user.name, email: user.email, hasPassword: true });
   } catch (err) {
     console.error('Erro ao trocar senha', err);
     res.status(500).json({ error: 'Erro ao trocar senha.' });
@@ -170,12 +188,16 @@ router.post('/auth/google', async (req, res) => {
 
   try {
     const pool = getPool();
-    const existing = await pool.query('SELECT id, name, email FROM users WHERE email = $1', [
-      email,
-    ]);
+    const existing = await pool.query(
+      'SELECT id, name, email, password_hash FROM users WHERE email = $1',
+      [email]
+    );
 
     if (existing.rows[0]) {
-      return res.status(200).json(existing.rows[0]);
+      const user = existing.rows[0];
+      return res
+        .status(200)
+        .json({ id: user.id, name: user.name, email: user.email, hasPassword: user.password_hash !== null });
     }
 
     const created = await pool.query(
@@ -183,16 +205,20 @@ router.post('/auth/google', async (req, res) => {
       [name, email]
     );
 
-    res.status(201).json(created.rows[0]);
+    res.status(201).json({ ...created.rows[0], hasPassword: false });
   } catch (err) {
     if (err.code === '23505') {
       // corrida rara: criada entre o SELECT e o INSERT -- tenta de novo como login.
       const pool = getPool();
-      const result = await pool.query('SELECT id, name, email FROM users WHERE email = $1', [
-        email,
-      ]);
+      const result = await pool.query(
+        'SELECT id, name, email, password_hash FROM users WHERE email = $1',
+        [email]
+      );
       if (result.rows[0]) {
-        return res.status(200).json(result.rows[0]);
+        const user = result.rows[0];
+        return res
+          .status(200)
+          .json({ id: user.id, name: user.name, email: user.email, hasPassword: user.password_hash !== null });
       }
     }
     console.error('Erro ao autenticar com Google', err);

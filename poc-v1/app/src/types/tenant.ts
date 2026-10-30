@@ -7,4 +7,6 @@ export interface Tenant {
   id: number;
   name: string;
   email: string;
+  /** false pra contas criadas via Google que ainda não definiram uma senha. */
+  hasPassword: boolean;
 }

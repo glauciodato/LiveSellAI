@@ -1,26 +1,26 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { changePassword } from '../services/authService';
+import type { Tenant } from '../types/tenant';
+import AuthScreenLayout from '../components/AuthScreenLayout';
+import AuthTextInput from '../components/AuthTextInput';
+import GradientButton from '../components/GradientButton';
+import { colors, fonts } from '../theme';
 
 const MIN_PASSWORD_LENGTH = 6;
 
 interface ChangePasswordScreenProps {
   tenantEmail: string;
-  onDone: () => void;
+  /** false pra contas criadas via Google que ainda não têm senha -- pula o campo "senha atual". */
+  hasPassword: boolean;
+  onDone: (updatedTenant: Tenant) => void;
   onCancel: () => void;
 }
 
-/** Tela de alterar senha: senha atual + nova senha (com confirmação). */
+/** Tela de alterar senha (ou definir a primeira, pra contas via Google). */
 export default function ChangePasswordScreen({
   tenantEmail,
+  hasPassword,
   onDone,
   onCancel,
 }: ChangePasswordScreenProps) {
@@ -32,7 +32,7 @@ export default function ChangePasswordScreen({
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit() {
-    if (!currentPassword) {
+    if (hasPassword && !currentPassword) {
       setError('Informe sua senha atual.');
       return;
     }
@@ -48,8 +48,13 @@ export default function ChangePasswordScreen({
     setError(null);
     setSubmitting(true);
     try {
-      await changePassword({ email: tenantEmail, currentPassword, newPassword });
+      const updatedTenant = await changePassword({
+        email: tenantEmail,
+        currentPassword: hasPassword ? currentPassword : undefined,
+        newPassword,
+      });
       setSuccess(true);
+      onDone(updatedTenant);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro inesperado ao trocar a senha.');
     } finally {
@@ -57,41 +62,38 @@ export default function ChangePasswordScreen({
     }
   }
 
+  const title = hasPassword ? 'Alterar senha' : 'Definir senha';
+  const subtitle = hasPassword
+    ? tenantEmail
+    : `${tenantEmail} — sua conta foi criada com o Google e ainda não tem senha.`;
+
   if (success) {
     return (
-      <KeyboardAvoidingView style={styles.container}>
-        <Text style={styles.title}>Senha alterada!</Text>
-        <Text style={styles.subtitle}>Sua senha foi atualizada com sucesso.</Text>
-        <TouchableOpacity style={styles.button} onPress={onDone}>
-          <Text style={styles.buttonText}>Voltar</Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
+      <AuthScreenLayout title="Senha salva!" subtitle="Sua senha foi atualizada com sucesso.">
+        <View style={styles.buttonWrapper}>
+          <GradientButton title="Voltar" onPress={() => onCancel()} />
+        </View>
+      </AuthScreenLayout>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <Text style={styles.title}>Alterar senha</Text>
-      <Text style={styles.subtitle}>{tenantEmail}</Text>
+    <AuthScreenLayout title={title} subtitle={subtitle}>
+      {hasPassword ? (
+        <AuthTextInput
+          placeholder="Senha atual"
+          secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          value={currentPassword}
+          onChangeText={(value) => {
+            setCurrentPassword(value);
+            if (error) setError(null);
+          }}
+        />
+      ) : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha atual"
-        secureTextEntry
-        autoCapitalize="none"
-        autoCorrect={false}
-        value={currentPassword}
-        onChangeText={(value) => {
-          setCurrentPassword(value);
-          if (error) setError(null);
-        }}
-      />
-
-      <TextInput
-        style={styles.input}
+      <AuthTextInput
         placeholder="Nova senha (mínimo 6 caracteres)"
         secureTextEntry
         autoCapitalize="none"
@@ -103,8 +105,7 @@ export default function ChangePasswordScreen({
         }}
       />
 
-      <TextInput
-        style={styles.input}
+      <AuthTextInput
         placeholder="Confirmar nova senha"
         secureTextEntry
         autoCapitalize="none"
@@ -119,79 +120,38 @@ export default function ChangePasswordScreen({
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <TouchableOpacity
-        style={[styles.button, submitting && styles.buttonDisabled]}
-        onPress={handleSubmit}
-        disabled={submitting}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Salvar nova senha</Text>
-        )}
-      </TouchableOpacity>
+      <View style={styles.buttonWrapper}>
+        <GradientButton
+          title={hasPassword ? 'Salvar nova senha' : 'Definir senha'}
+          onPress={handleSubmit}
+          loading={submitting}
+        />
+      </View>
 
-      <TouchableOpacity onPress={onCancel} disabled={submitting}>
+      <TouchableOpacity onPress={onCancel} disabled={submitting} style={styles.cancelWrapper}>
         <Text style={styles.cancelLink}>Cancelar</Text>
       </TouchableOpacity>
-    </KeyboardAvoidingView>
+    </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    maxWidth: 360,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginTop: 12,
-  },
   error: {
-    color: '#c0392b',
-    marginTop: 8,
+    color: colors.destructive,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    marginTop: 10,
   },
-  button: {
-    marginTop: 16,
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#111',
-    borderRadius: 8,
-    paddingVertical: 14,
+  buttonWrapper: {
+    marginTop: 20,
+  },
+  cancelWrapper: {
     alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    marginTop: 18,
   },
   cancelLink: {
-    marginTop: 20,
     fontSize: 14,
-    color: '#555',
+    fontFamily: fonts.bodyMedium,
+    color: colors.muted,
   },
 });

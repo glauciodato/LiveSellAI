@@ -7,7 +7,7 @@ import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import UploadScreen from './src/screens/UploadScreen';
-import { clearTenant, getStoredTenant } from './src/services/tenantStorage';
+import { clearTenant, getStoredTenant, saveTenant } from './src/services/tenantStorage';
 import type { Tenant } from './src/types/tenant';
 import { colors, fontsToLoad } from './src/theme';
 
@@ -49,7 +49,12 @@ export default function App() {
         return (
           <ChangePasswordScreen
             tenantEmail={tenant.email}
-            onDone={() => setChangingPassword(false)}
+            hasPassword={tenant.hasPassword}
+            onDone={async (updatedTenant) => {
+              await saveTenant(updatedTenant);
+              setTenant(updatedTenant);
+              setChangingPassword(false);
+            }}
             onCancel={() => setChangingPassword(false)}
           />
         );

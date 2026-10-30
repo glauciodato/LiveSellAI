@@ -22,7 +22,14 @@ export async function getStoredTenant(): Promise<Tenant | null> {
       typeof parsed.name === 'string' &&
       typeof parsed.email === 'string'
     ) {
-      return { id: parsed.id, name: parsed.name, email: parsed.email };
+      return {
+        id: parsed.id,
+        name: parsed.name,
+        email: parsed.email,
+        // Sessões salvas antes dessa coluna existir não têm o campo --
+        // assume que tem senha (comportamento de sempre) até provar o contrário.
+        hasPassword: typeof parsed.hasPassword === 'boolean' ? parsed.hasPassword : true,
+      };
     }
     return null;
   } catch {

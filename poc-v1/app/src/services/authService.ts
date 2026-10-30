@@ -87,11 +87,15 @@ export async function loginWithGoogle(idToken: string): Promise<Tenant> {
 
 export interface ChangePasswordParams {
   email: string;
-  currentPassword: string;
+  /** Omitido pra contas sem senha ainda (criadas via Google) -- o backend sabe quando exigir. */
+  currentPassword?: string;
   newPassword: string;
 }
 
-/** Troca a senha (exige a senha atual). Lança erro com mensagem amigável em caso de falha. */
+/**
+ * Troca a senha (ou define a primeira, pra contas criadas via Google sem
+ * `currentPassword`). Lança erro com mensagem amigável em caso de falha.
+ */
 export async function changePassword({
   email,
   currentPassword,
