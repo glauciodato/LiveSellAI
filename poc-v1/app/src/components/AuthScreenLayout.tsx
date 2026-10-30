@@ -30,8 +30,8 @@ export default function AuthScreenLayout({ title, subtitle, children, footer }: 
         showsVerticalScrollIndicator={false}
       >
         <Image
-          source={require('../../assets/brand/sellai-symbol.png')}
-          style={styles.symbol}
+          source={require('../../assets/brand/sellai-logo.png')}
+          style={styles.logo}
           resizeMode="contain"
         />
 
@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 40,
   },
-  symbol: {
-    width: 56,
-    height: 53,
-    marginBottom: 20,
+  logo: {
+    width: 220,
+    height: 47,
+    marginBottom: 28,
   },
   card: {
     width: '100%',
