@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Platform, View, findNodeHandle, useWindowDimensions } from 'react-native';
+import { Platform, View, useWindowDimensions } from 'react-native';
 import { GOOGLE_CLIENT_ID } from '../config';
 
 interface GoogleSignInButtonProps {
@@ -63,7 +63,11 @@ function loadGsiScript(): Promise<void> {
  * parte (fora do escopo atual, que roda só na Web).
  */
 export default function GoogleSignInButton({ onCredential }: GoogleSignInButtonProps) {
-  const containerRef = useRef<View>(null);
+  // Na Web, react-native-web encaminha o ref direto pro nó DOM subjacente
+  // (não precisa/suporta findNodeHandle aqui) -- daí o `any`, já que o tipo
+  // de ref do `View` (nativo) e o nó DOM real (web) não batem.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const containerRef = useRef<any>(null);
   const { width: windowWidth } = useWindowDimensions();
   const buttonWidth = Math.round(Math.max(200, Math.min(344, windowWidth - 104)));
 
@@ -77,7 +81,7 @@ export default function GoogleSignInButton({ onCredential }: GoogleSignInButtonP
     loadGsiScript()
       .then(() => {
         if (cancelled) return;
-        const node = findNodeHandle(containerRef.current) as unknown as HTMLElement | null;
+        const node = containerRef.current;
         if (!node || !window.google) return;
 
         node.innerHTML = '';
