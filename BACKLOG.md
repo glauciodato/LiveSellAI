@@ -1,5 +1,25 @@
 # Backlog
 
+## [CONCLUÍDO] Menu da plataforma + foto de perfil do Google
+
+**Como** usuário do LiveSellAI
+**Eu quero** um menu de verdade (não links soltos no cabeçalho) e ver minha foto do Google quando eu entrar por lá
+**Para que** a navegação fique organizada e a conta pareça mais "minha"
+
+**Critérios de aceitação:**
+- [x] Menu/dropdown acessível pelo avatar no cabeçalho, em todas as telas pós-login (`AppHeader` + `AppMenu`, componentes reutilizáveis)
+- [x] Conteúdo do menu é só o que já existia, organizado: perfil (foto/iniciais + nome + e-mail), Home, Alterar senha, Sair — sem seções placeholder tipo "Planos"/"Indique e ganhe"
+- [x] Coluna `avatar_url` adicionada em `users` (RDS) — contas via Google guardam a foto (`picture` do token), atualizada a cada login caso o usuário troque; contas por e-mail/senha ficam `NULL`
+- [x] Todas as respostas de auth (`register`/`login`/`auth-google`/`change-password`) passam a incluir `avatarUrl`
+- [x] Componente `Avatar`: mostra a foto quando existir, senão um círculo com a inicial do nome no gradiente da marca
+- [x] Testado de verdade: build Web real + Playwright em mobile (390px) e desktop (1280px) — menu abre, navega (Home/Alterar senha) a partir de qualquer tela, sem erros de console
+
+**Observação:** surgiu de uma pergunta do usuário depois de ver o Home pronto ("faltou o menu da plataforma, e já podemos incluir o avatar do Google?"). Decisão explícita de não adicionar seções sem funcionalidade real por trás (diferente do passo anterior, que aceitou "Em breve" pros passos do checklist) — o menu só tem o que já existe e funciona.
+
+**Data:** 30/10/2026
+
+---
+
 ## [CONCLUÍDO] Home com checklist de onboarding (UI/UX, sem automação ainda)
 
 **Como** usuário do LiveSellAI

@@ -1,9 +1,14 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, gradientLive } from '../theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import AppHeader from '../components/AppHeader';
+import type { Tenant } from '../types/tenant';
 
 interface VoiceCloneInfoScreenProps {
+  tenant: Tenant;
   onBack: () => void;
+  onChangePassword: () => void;
+  onLogout: () => void;
 }
 
 /**
@@ -12,12 +17,21 @@ interface VoiceCloneInfoScreenProps {
  * 1 (ver avatar-service-aws/handler.py). Um upload de áudio dedicado, pra
  * melhor qualidade, é um passo futuro (ver ROADMAP.md).
  */
-export default function VoiceCloneInfoScreen({ onBack }: VoiceCloneInfoScreenProps) {
+export default function VoiceCloneInfoScreen({
+  tenant,
+  onBack,
+  onChangePassword,
+  onLogout,
+}: VoiceCloneInfoScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={onBack} style={styles.backLink}>
-        <Text style={styles.backLinkText}>← Voltar</Text>
-      </TouchableOpacity>
+      <AppHeader
+        tenant={tenant}
+        onBack={onBack}
+        onNavigateHome={onBack}
+        onChangePassword={onChangePassword}
+        onLogout={onLogout}
+      />
 
       <View style={styles.card}>
         <LinearGradient colors={gradientLive} style={styles.badge}>
@@ -51,15 +65,6 @@ const styles = StyleSheet.create({
     maxWidth: 560,
     width: '100%',
     alignSelf: 'center',
-  },
-  backLink: {
-    marginBottom: 20,
-    alignSelf: 'flex-start',
-  },
-  backLinkText: {
-    fontSize: 14,
-    fontFamily: fonts.bodyMedium,
-    color: colors.muted,
   },
   card: {
     backgroundColor: colors.white,

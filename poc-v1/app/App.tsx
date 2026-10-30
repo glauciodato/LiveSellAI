@@ -74,7 +74,7 @@ export default function App() {
       if (mainScreen === 'avatar') {
         return (
           <UploadScreen
-            tenantEmail={tenant.email}
+            tenant={tenant}
             onLogout={handleLogout}
             onChangePassword={() => setChangingPassword(true)}
             onBackToHome={() => setMainScreen('home')}
@@ -83,13 +83,19 @@ export default function App() {
       }
 
       if (mainScreen === 'voice') {
-        return <VoiceCloneInfoScreen onBack={() => setMainScreen('home')} />;
+        return (
+          <VoiceCloneInfoScreen
+            tenant={tenant}
+            onBack={() => setMainScreen('home')}
+            onChangePassword={() => setChangingPassword(true)}
+            onLogout={handleLogout}
+          />
+        );
       }
 
       return (
         <HomeScreen
-          tenantName={tenant.name}
-          tenantEmail={tenant.email}
+          tenant={tenant}
           onNavigateToStep={setMainScreen}
           onChangePassword={() => setChangingPassword(true)}
           onLogout={handleLogout}

@@ -9,4 +9,6 @@ export interface Tenant {
   email: string;
   /** false pra contas criadas via Google que ainda não definiram uma senha. */
   hasPassword: boolean;
+  /** Foto de perfil do Google, se a conta tiver entrado por lá; null caso contrário. */
+  avatarUrl: string | null;
 }

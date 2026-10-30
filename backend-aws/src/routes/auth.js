@@ -37,11 +37,18 @@ router.post('/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
     const result = await pool.query(
-      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email',
+      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, avatar_url',
       [name, email, passwordHash]
     );
 
-    res.status(201).json({ ...result.rows[0], hasPassword: true });
+    const user = result.rows[0];
+    res.status(201).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      hasPassword: true,
+    });
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Já existe uma conta com esse e-mail.' });
@@ -66,7 +73,7 @@ router.post('/login', async (req, res) => {
   try {
     const pool = getPool();
     const result = await pool.query(
-      'SELECT id, name, email, password_hash FROM users WHERE email = $1',
+      'SELECT id, name, email, password_hash, avatar_url FROM users WHERE email = $1',
       [email]
     );
 
@@ -83,6 +90,7 @@ router.post('/login', async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      avatarUrl: user.avatar_url,
       hasPassword: user.password_hash !== null,
     });
   } catch (err) {
@@ -115,7 +123,7 @@ router.post('/change-password', async (req, res) => {
   try {
     const pool = getPool();
     const result = await pool.query(
-      'SELECT id, name, email, password_hash FROM users WHERE email = $1',
+      'SELECT id, name, email, password_hash, avatar_url FROM users WHERE email = $1',
       [email]
     );
     const user = result.rows[0];
@@ -143,7 +151,13 @@ router.post('/change-password', async (req, res) => {
       user.id,
     ]);
 
-    res.status(200).json({ id: user.id, name: user.name, email: user.email, hasPassword: true });
+    res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      hasPassword: true,
+    });
   } catch (err) {
     console.error('Erro ao trocar senha', err);
     res.status(500).json({ error: 'Erro ao trocar senha.' });
@@ -185,40 +199,64 @@ router.post('/auth/google', async (req, res) => {
 
   const email = payload.email.toLowerCase();
   const name = payload.name || email;
+  const avatarUrl = payload.picture || null;
 
   try {
     const pool = getPool();
     const existing = await pool.query(
-      'SELECT id, name, email, password_hash FROM users WHERE email = $1',
+      'SELECT id, name, email, password_hash, avatar_url FROM users WHERE email = $1',
       [email]
     );
 
     if (existing.rows[0]) {
-      const user = existing.rows[0];
-      return res
-        .status(200)
-        .json({ id: user.id, name: user.name, email: user.email, hasPassword: user.password_hash !== null });
+      let user = existing.rows[0];
+      // Mantém a foto do Google atualizada a cada login, caso o usuário troque.
+      if (avatarUrl && avatarUrl !== user.avatar_url) {
+        const updated = await pool.query(
+          'UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING id, name, email, password_hash, avatar_url',
+          [avatarUrl, user.id]
+        );
+        user = updated.rows[0];
+      }
+      return res.status(200).json({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatar_url,
+        hasPassword: user.password_hash !== null,
+      });
     }
 
     const created = await pool.query(
-      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, NULL) RETURNING id, name, email',
-      [name, email]
+      'INSERT INTO users (name, email, password_hash, avatar_url) VALUES ($1, $2, NULL, $3) RETURNING id, name, email, avatar_url',
+      [name, email, avatarUrl]
     );
 
-    res.status(201).json({ ...created.rows[0], hasPassword: false });
+    const user = created.rows[0];
+    res.status(201).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      hasPassword: false,
+    });
   } catch (err) {
     if (err.code === '23505') {
       // corrida rara: criada entre o SELECT e o INSERT -- tenta de novo como login.
       const pool = getPool();
       const result = await pool.query(
-        'SELECT id, name, email, password_hash FROM users WHERE email = $1',
+        'SELECT id, name, email, password_hash, avatar_url FROM users WHERE email = $1',
         [email]
       );
       if (result.rows[0]) {
         const user = result.rows[0];
-        return res
-          .status(200)
-          .json({ id: user.id, name: user.name, email: user.email, hasPassword: user.password_hash !== null });
+        return res.status(200).json({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          avatarUrl: user.avatar_url,
+          hasPassword: user.password_hash !== null,
+        });
       }
     }
     console.error('Erro ao autenticar com Google', err);

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -20,13 +19,15 @@ import {
   type VideoListItem,
 } from '../services/uploadService';
 import GradientButton from '../components/GradientButton';
+import AppHeader from '../components/AppHeader';
 import { colors, fonts } from '../theme';
+import type { Tenant } from '../types/tenant';
 
 interface UploadScreenProps {
-  tenantEmail: string;
+  tenant: Tenant;
   onLogout: () => void;
   onChangePassword: () => void;
-  onBackToHome?: () => void;
+  onBackToHome: () => void;
 }
 
 interface SelectedVideo {
@@ -72,11 +73,12 @@ function formatVideoSize(bytes: number | null): string {
  * — hoje a geração em si ainda é disparada manualmente, fora do app).
  */
 export default function UploadScreen({
-  tenantEmail,
+  tenant,
   onLogout,
   onChangePassword,
   onBackToHome,
 }: UploadScreenProps) {
+  const tenantEmail = tenant.email;
   const [video, setVideo] = useState<SelectedVideo | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -228,27 +230,13 @@ export default function UploadScreen({
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.header}>
-        <Image
-          source={require('../../assets/brand/sellai-logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={onChangePassword}>
-            <Text style={styles.headerLink}>Alterar senha</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onLogout}>
-            <Text style={styles.headerLink}>Trocar conta</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {onBackToHome ? (
-        <TouchableOpacity onPress={onBackToHome} style={styles.backLink}>
-          <Text style={styles.backLinkText}>← Voltar</Text>
-        </TouchableOpacity>
-      ) : null}
+      <AppHeader
+        tenant={tenant}
+        onBack={onBackToHome}
+        onNavigateHome={onBackToHome}
+        onChangePassword={onChangePassword}
+        onLogout={onLogout}
+      />
 
       <Text style={styles.tenant}>{tenantEmail}</Text>
 
@@ -382,34 +370,6 @@ const styles = StyleSheet.create({
     maxWidth: 560,
     width: '100%',
     alignSelf: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  logo: {
-    width: 128,
-    height: 27,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  headerLink: {
-    fontSize: 13,
-    fontFamily: fonts.bodyMedium,
-    color: colors.muted,
-  },
-  backLink: {
-    marginBottom: 8,
-    alignSelf: 'flex-start',
-  },
-  backLinkText: {
-    fontSize: 14,
-    fontFamily: fonts.bodyMedium,
-    color: colors.muted,
   },
   tenant: {
     fontSize: 13,

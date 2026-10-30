@@ -1,12 +1,13 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import ChecklistItem from '../components/ChecklistItem';
+import AppHeader from '../components/AppHeader';
 import { colors, fonts } from '../theme';
+import type { Tenant } from '../types/tenant';
 
 export type OnboardingStep = 'avatar' | 'voice';
 
 interface HomeScreenProps {
-  tenantName: string;
-  tenantEmail: string;
+  tenant: Tenant;
   onNavigateToStep: (step: OnboardingStep) => void;
   onChangePassword: () => void;
   onLogout: () => void;
@@ -33,32 +34,22 @@ const STEPS: Array<{
  * demais aparecem como "Em breve".
  */
 export default function HomeScreen({
-  tenantName,
-  tenantEmail,
+  tenant,
   onNavigateToStep,
   onChangePassword,
   onLogout,
 }: HomeScreenProps) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Image
-          source={require('../../assets/brand/sellai-logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={onChangePassword}>
-            <Text style={styles.headerLink}>Alterar senha</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onLogout}>
-            <Text style={styles.headerLink}>Trocar conta</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <AppHeader
+        tenant={tenant}
+        onNavigateHome={() => {}}
+        onChangePassword={onChangePassword}
+        onLogout={onLogout}
+      />
 
-      <Text style={styles.greeting}>Olá, {tenantName.split(' ')[0]} 👋</Text>
-      <Text style={styles.subtitle}>{tenantEmail}</Text>
+      <Text style={styles.greeting}>Olá, {tenant.name.split(' ')[0]} 👋</Text>
+      <Text style={styles.subtitle}>{tenant.email}</Text>
 
       <Text style={styles.sectionTitle}>Comece por aqui</Text>
       <Text style={styles.sectionSubtitle}>
@@ -94,25 +85,6 @@ const styles = StyleSheet.create({
     maxWidth: 560,
     width: '100%',
     alignSelf: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 28,
-  },
-  logo: {
-    width: 128,
-    height: 27,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  headerLink: {
-    fontSize: 13,
-    fontFamily: fonts.bodyMedium,
-    color: colors.muted,
   },
   greeting: {
     fontSize: 24,

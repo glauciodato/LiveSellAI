@@ -29,6 +29,7 @@ export async function getStoredTenant(): Promise<Tenant | null> {
         // Sessões salvas antes dessa coluna existir não têm o campo --
         // assume que tem senha (comportamento de sempre) até provar o contrário.
         hasPassword: typeof parsed.hasPassword === 'boolean' ? parsed.hasPassword : true,
+        avatarUrl: typeof parsed.avatarUrl === 'string' ? parsed.avatarUrl : null,
       };
     }
     return null;
